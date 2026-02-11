@@ -10,8 +10,9 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function Cart() {
-  const { cart } = useCartStore();
-  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cart = useCartStore((state) => state.cart);
+  const totalItems = useCartStore((state) => state.totalItems());
+  // const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   if (cart.length === 0) {
     return <EmptyCart />;
@@ -23,7 +24,7 @@ export default function Cart() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Shopping Cart</h1>
           <p className="text-muted-foreground mt-2">
-            {itemCount} {itemCount === 1 ? "item" : "items"} in your cart
+            {totalItems} {totalItems === 1 ? "item" : "items"} in your cart
           </p>
         </div>
 

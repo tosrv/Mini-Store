@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -18,26 +18,37 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
-const categories = [
+export const categories = [
   { id: "all", name: "All" },
+  { id: "sneakers", name: "Sneakers" },
   { id: "running", name: "Running" },
-  { id: "lifestyle", name: "Lifestyle" },
-  { id: "training", name: "Training" },
   { id: "casual", name: "Casual" },
+  { id: "formal", name: "Formal" },
+  { id: "boots", name: "Boots" },
+  { id: "sandals", name: "Sandals" },
 ];
 
-export default function Filter({ activeCategory }: { activeCategory: string }) {
+export interface FilterProps {
+  activeCategory: string;
+};
+
+export default function Filter({
+  activeCategory,
+}: FilterProps) {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const currentPath = pathname;
+
   const query = searchParams.get("q");
   const category = searchParams.get("category");
 
   return (
-    <div className="flex justify-between mb-8 px-4 lg:px-8 lg:mx-40">
+    <div className="flex justify-between px-4 grow">
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
             <NavigationMenuTrigger>Category</NavigationMenuTrigger>
-
             <NavigationMenuContent>
               <div className="p-2 w-48 grid gap-1">
                 {categories.map((cat) => {
@@ -47,7 +58,9 @@ export default function Filter({ activeCategory }: { activeCategory: string }) {
                   if (cat.id !== "all") params.set("category", cat.id);
 
                   const href =
-                    params.toString() === "" ? "/" : `/?${params.toString()}`;
+                    params.toString() === ""
+                      ? currentPath
+                      : `${currentPath}?${params.toString()}`;
 
                   const isActive = activeCategory === cat.id;
 
@@ -59,7 +72,7 @@ export default function Filter({ activeCategory }: { activeCategory: string }) {
                         "block rounded-md px-3 py-2 text-sm transition",
                         isActive
                           ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted",
+                          : "hover:bg-muted"
                       )}
                     >
                       <Link href={href}>{cat.name}</Link>
@@ -92,7 +105,9 @@ export default function Filter({ activeCategory }: { activeCategory: string }) {
 
             return (
               <DropdownMenuItem key={item.id} asChild>
-                <Link href={`/?${params.toString()}`}>{item.label}</Link>
+                <Link href={`${currentPath}?${params.toString()}`}>
+                  {item.label}
+                </Link>
               </DropdownMenuItem>
             );
           })}

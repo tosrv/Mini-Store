@@ -2,13 +2,14 @@
 
 import ProductList from "@/components/home/ProductList";
 import Filter from "@/components/product/Filter";
-// import products from "@/data/products.json";
 import { useSearchParams } from "next/navigation";
 import { supabase, useUser } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
-import { Product } from "@/types/product";
 import { ProductSkeleton } from "@/components/auth/Skeleton";
 import { useCartStore } from "@/store/cart-store";
+import { useProductStore } from "@/store/product-store";
+import { Card } from "@/components/ui/card";
+import DesktopFilter from "@/components/layout/DesktopFilter";
 
 export default function Home() {
   const searchParams = useSearchParams();
@@ -16,11 +17,45 @@ export default function Home() {
   const category = searchParams.get("category") ?? "all";
   const sort = searchParams.get("sort") ?? "";
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { setProducts } = useProductStore();
+  const products = useProductStore((state) => state.products);
+  const [loading, setLoading] = useState(false);
 
   const userId = useUser();
   const { setCart } = useCartStore();
+
+  useEffect(() => {
+    if (products.length > 0) return;
+
+    setLoading(true);
+    const fetchProducts = async () => {
+      try {
+        const { data: products, error } = await supabase
+          .from("products")
+          .select("id, name, description, price, stock, category, image_url");
+        if (error) {
+          console.error("Error fetching products:", error);
+        } else {
+          const formattedProducts = products.map((product) => ({
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            stock: product.stock,
+            category: product.category,
+            image_url: product.image_url,
+          }));
+
+          setProducts(formattedProducts);
+        }
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, [products.length, setProducts]);
 
   useEffect(() => {
     if (!userId) return;
@@ -78,21 +113,6 @@ export default function Home() {
     fetchCart();
   }, [userId, setCart]);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      const { data, error } = await supabase.from("products").select("*");
-      if (error) {
-        console.error("Error fetching products:", error);
-        setProducts([]);
-      } else {
-        setProducts(data ?? []);
-      }
-      setLoading(false);
-    };
-    fetchProducts();
-  }, [supabase]);
-
   const searchProducts = products.filter((product) =>
     product.name.toLowerCase().includes(query.toLowerCase()),
   );
@@ -122,8 +142,19 @@ export default function Home() {
         </p>
       </div>
 
-      <Filter activeCategory={category} />
-      {loading ? <ProductSkeleton /> : <ProductList products={finalProducts} />}
+      <div className="space-y-5 lg:flex lg:space-x-5 mx-auto justify-center">
+        <div className="lg:hidden">
+          <Filter activeCategory={category} />
+        </div>
+        <Card className="h-fit w-50 sticky top-24 hidden lg:block p-3">
+          <DesktopFilter activeCategory={category}/>
+        </Card>
+        {loading ? (
+          <ProductSkeleton />
+        ) : (
+          <ProductList products={finalProducts} />
+        )}
+      </div>
     </div>
   );
 }

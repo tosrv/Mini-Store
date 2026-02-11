@@ -6,7 +6,7 @@ export default function ProductList({products}: {products: Product[]}) {
   // TODO: Add product from database here
 
   return (
-    <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 max-w-7xl mx-auto">
+    <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 max-w-7xl">
       {products.length > 0 ? (
         products.map((product) => (
           <ProductCard key={product.id} product={product} />

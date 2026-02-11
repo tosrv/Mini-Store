@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import OAuth from "./o-auth";
 
 export function SignUpForm({
   className,
@@ -37,9 +38,6 @@ export function SignUpForm({
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-        },
       });
 
       if (error) {
@@ -56,7 +54,7 @@ export function SignUpForm({
         console.error("Error creating profile", profileError.message);
       }
 
-      router.push("/auth/sign-up-success");
+      router.push("/");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
@@ -84,6 +82,7 @@ export function SignUpForm({
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  className="h-12 rounded-full shadow-none"
                 />
               </div>
               <div className="grid gap-2">
@@ -95,6 +94,7 @@ export function SignUpForm({
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="h-12 rounded-full shadow-none"
                 />
               </div>
               <div className="grid gap-2">
@@ -107,16 +107,37 @@ export function SignUpForm({
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="h-12 rounded-full shadow-none"
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full h-12 rounded-full shadow-none text-xl"
+                disabled={isLoading}
+              >
                 {isLoading ? "Creating an account..." : "Sign up"}
               </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+
+              <OAuth />
             </div>
             <div className="mt-4 text-center text-sm">
               Already have an account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
+              <Link
+                href="/auth/login"
+                className="text-yellow-600 font-semibold hover:text-yellow-500"
+              >
                 Login
               </Link>
             </div>

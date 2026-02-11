@@ -48,10 +48,10 @@ export default function ProductCard({ product }: { product: Product }) {
       }
 
       addToCart({
-        id: product.id,
+        id: String(product.id),
         name: product.name,
         price: product.price,
-        image: product.image_url,
+        image: product.image_url ?? "../../../public/images/NoImage.jpg",
         quantity: 1,
       });
 
@@ -68,6 +68,11 @@ export default function ProductCard({ product }: { product: Product }) {
     e.preventDefault();
     e.stopPropagation();
     setIsLiked(!isLiked);
+  };
+
+  const formatRupiah = (value: string) => {
+    const number = value.replace(/\D/g, "");
+    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
   return (
@@ -93,7 +98,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <div className="aspect-square overflow-hidden bg-muted">
             {!imageError ? (
               <Image
-                src={product.image_url.trim()}
+                src={product.image_url ?? "../../../public/images/NoImage.jpg"}
                 alt={product.name}
                 width={400}
                 height={400}
@@ -130,7 +135,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
         <div className="flex items-center gap-2">
           <span className="text-lg font-bold text-foreground">
-            ${product.price.toFixed(2)}
+            Rp{formatRupiah(String(product.price))}
           </span>
         </div>
 

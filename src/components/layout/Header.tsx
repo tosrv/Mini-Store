@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase/client";
 import { LogoutButton } from "../auth/logout-button";
 import { useCartStore } from "@/store/cart-store";
 import ProductSearch from "../product/Search";
+import { useUserStore } from "@/store/user-store";
 
 export default function Header() {
   const cart = useCartStore((state) => state.cart);
@@ -30,33 +31,40 @@ export default function Header() {
     router.push(`/?${p.toString()}`);
   };
 
-  const [user, setUser] = useState<any>(null);
+  const user = useUserStore((state) => state.user);
+  const setUser = useUserStore((state) => state.setUser);
+  const clearUser = useUserStore((state) => state.clearUser);
 
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!session?.user) {
-        setUser(null);
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_OUT" || !session?.user) {
+        clearUser();
         return;
       }
 
+      const metadata = session.user.user_metadata;
+      const temporaryUser = {
+        name: metadata.full_name || metadata.name || "New User",
+        role: "customer", 
+      };
+
+      setUser(temporaryUser);
+
       const { data, error } = await supabase
         .from("profiles")
-        .select("name")
+        .select("name, role")
         .eq("id", session.user.id)
         .single();
 
-      if (!error) {
-        const user = data.name.trim().split(" ")[0];
-        setUser(user);
+      if (!error && data) {
+        setUser(data); 
       }
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [supabase]);
+    return () => subscription.unsubscribe();
+  }, [setUser, clearUser]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -95,14 +103,14 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-8 lg:space-x-12">
             <Link
-              className="text-2xl tracking-tight text-gray-900 hover:text-gray-700 transition-colors"
+              className="text-2xl tracking-tight text-gray-900 hover:text-gray-700 transition-colors font-bold"
               href="/"
-              aria-label="YellowShop Home"
+              aria-label="YellowStore Home"
             >
-              YELLOW<span className="text-primary">SHOP</span>
+              YELLOW<span className="text-primary">STORE</span>
             </Link>
 
-            <nav
+            {/* <nav
               className="hidden md:flex items-center space-x-1"
               role="navigation"
               aria-label="Main navigation"
@@ -121,7 +129,7 @@ export default function Header() {
                   {label}
                 </Link>
               ))}
-            </nav>
+            </nav> */}
           </div>
 
           <ProductSearch
@@ -171,11 +179,19 @@ export default function Header() {
 
             {user ? (
               <div className="hidden sm:flex items-center space-x-2">
-                <Link href="/profile">
-                  <Button variant="ghost" size="sm" className="text-sm">
-                    {user}
-                  </Button>
-                </Link>
+                {user.role === "admin" ? (
+                  <Link href="/dashboard">
+                    <Button variant="ghost" size="sm" className="text-sm">
+                      Dashboard
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/profile">
+                    <Button variant="ghost" size="sm" className="text-sm">
+                      {user.name.trim().split(" ")[0]}
+                    </Button>
+                  </Link>
+                )}
                 <LogoutButton />
               </div>
             ) : (
@@ -233,9 +249,15 @@ export default function Header() {
             {user ? (
               <div className="flex flex-col space-y-3 pt-4 sm:hidden">
                 <Button variant="outline" className="w-full text-sm" asChild>
-                  <Link href="/profile" onClick={closeMobileMenu}>
-                    Profile
-                  </Link>
+                  {user.role === "admin" ? (
+                    <Link href="/dashboard" onClick={closeMobileMenu}>
+                      Dashboard
+                    </Link>
+                  ) : (
+                    <Link href="/profile" onClick={closeMobileMenu}>
+                      Profile
+                    </Link>
+                  )}
                 </Button>
 
                 <LogoutButton />

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart-store";
+import { useUserStore } from "@/store/user-store";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -11,6 +12,7 @@ export function LogoutButton() {
   const logout = async () => {
     const supabase = createClient();
     useCartStore.getState().clearCart();
+    useUserStore.getState().clearUser();
     await supabase.auth.signOut();
     router.push("/auth/login");
   };

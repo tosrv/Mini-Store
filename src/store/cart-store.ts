@@ -1,25 +1,25 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type CartItem = {
-  id: number;
+interface CartItem {
+  id: string;
   name: string;
   price: number;
   image: string;
   quantity: number;
 };
 
-type CartStore = {
+interface CartStore  {
   cart: CartItem[];
 
   addToCart: (item: CartItem) => void;
-  removeFromCart: (id: number) => void;
-  updateQuantity: (id: number, qty: number) => void;
+  removeFromCart: (id: string) => void;
+  updateQuantity: (id: string, qty: number) => void;
   clearCart: () => void;
   setCart: (items: CartItem[]) => void;
 
   totalItems: () => number;
-  totalPrice: () => number;
+  subtotal: () => number;
 };
 
 export const useCartStore = create<CartStore>()(
@@ -50,13 +50,13 @@ export const useCartStore = create<CartStore>()(
 
       removeFromCart: (id) =>
         set((state) => ({
-          cart: state.cart.filter((i) => i.id !== id),
+          cart: state.cart.filter((i) => i.id !== String(id)),
         })),
 
       updateQuantity: (id, qty) =>
         set((state) => ({
           cart: state.cart.map((i) =>
-            i.id === id ? { ...i, quantity: qty } : i,
+            i.id === String(id) ? { ...i, quantity: qty } : i,
           ),
         })),
 
@@ -65,7 +65,7 @@ export const useCartStore = create<CartStore>()(
       totalItems: () =>
         get().cart.reduce((sum, item) => sum + item.quantity, 0),
 
-      totalPrice: () =>
+      subtotal: () =>
         get().cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
     }),
     {

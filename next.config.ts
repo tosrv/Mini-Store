@@ -11,6 +11,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "tgbyevvogyckrahohyee.supabase.co",
+      },
+      {
+        protocol: "https",
+        hostname: "images.openai.com",
+      },
     ],
   },
 };

@@ -11,7 +11,7 @@ import { useUser } from "@/lib/supabase/client";
 
 interface CartItemProps {
   item: {
-    id: number;
+    id: string;
     name: string;
     price: number;
     image: string;
@@ -27,7 +27,7 @@ export default function CartItem({ item, isLast }: CartItemProps) {
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
 
-  const handleRemove = async (id: number) => {
+  const handleRemove = async (id: string) => {
     try {
       await supabase.from("cart_items").delete().eq("product_id", id);
       removeFromCart(id);
@@ -36,7 +36,7 @@ export default function CartItem({ item, isLast }: CartItemProps) {
     }
   };
 
-  const handleQuantity = async (productId: number, newQuantity: number) => {
+  const handleQuantity = async (productId: string, newQuantity: number) => {
     if (newQuantity < 1 || !userId) return;
 
     updateQuantity(productId, newQuantity);
@@ -60,6 +60,11 @@ export default function CartItem({ item, isLast }: CartItemProps) {
     }
   };
 
+  const formatRupiah = (value: string) => {
+    const number = value.replace(/\D/g, "");
+    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+
   return (
     <div>
       <div className="flex items-start gap-4">
@@ -80,7 +85,7 @@ export default function CartItem({ item, isLast }: CartItemProps) {
                 {item.name}
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                ${item.price.toFixed(2)} each
+                Rp{formatRupiah(String(item.price))} each
               </p>
             </div>
 
@@ -120,7 +125,7 @@ export default function CartItem({ item, isLast }: CartItemProps) {
 
             <div className="text-right">
               <p className="text-lg font-bold text-foreground">
-                ${(item.price * item.quantity).toFixed(2)}
+                Rp{formatRupiah(String(item.price * item.quantity))}
               </p>
             </div>
           </div>

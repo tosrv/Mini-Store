@@ -3,11 +3,8 @@
 import Features from "@/components/product/Features";
 import ProductBreadcrumb from "@/components/product/ProductBreadcrumb";
 import ProductNotFound from "@/components/product/ProductNotFound";
-import RelatedProducts from "@/components/product/RelatedProducts";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-// import { useCart } from "@/context/CartContext";
-import products from "@/data/products.json";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import {
@@ -21,16 +18,15 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
-import type { Product } from "@/types/product";
-import { DetailProductSkeleton } from "@/components/auth/Skeleton";
 import { useUser } from "@/lib/supabase/client";
+import { useProductStore } from "@/store/product-store";
 
-export default function Product() {
+export default function DetailProduct() {
   const addToCart = useCartStore((state) => state.addToCart);
 
-  const { productId } = useParams();
+  const { productId } = useParams<{ productId: string }>();
   const router = useRouter();
   const userId = useUser();
 
@@ -39,98 +35,44 @@ export default function Product() {
   const [justAdded, setJustAdded] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      if (!productId) return;
-
-      setLoading(true);
-
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("id", productId)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error fetching product:", error);
-        setProduct(null);
-      } else {
-        setProduct(data || null);
-      }
-
-      setLoading(false);
-    };
-
-    fetchProducts();
-  }, [supabase, productId]);
-
-  useEffect(() => {
-    const fetchRelatedProducts = async () => {
-      if (!product) return;
-
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .neq("id", product.id)
-        .limit(4);
-
-      if (error) {
-        console.error("Error fetching related products:", error);
-        setRelatedProducts([]);
-      } else {
-        setRelatedProducts(data || []);
-      }
-    };
-
-    fetchRelatedProducts();
-  }, [product, supabase]);
-
-  // const product = products.find((p) => p.id === parseInt(productId as string));
-
-  if (loading) {
-    return <DetailProductSkeleton />;
-  }
+  const products = useProductStore((state) => state.products);
+  const product = products.find((p) => String(p.id) === productId);
 
   if (!product) {
     return <ProductNotFound />;
   }
 
-const handleAddToCart = async (quantity: number) => {
-  if (!userId) {
-    router.push("/auth/login");
-    return;
-  }
+  const handleAddToCart = async (quantity: number) => {
+    if (!userId) {
+      router.push("/auth/login");
+      return;
+    }
 
-  setIsAdding(true);
+    setIsAdding(true);
 
-  try {
-    await supabase.rpc("add_item_to_cart", {
-      p_user_id: userId,
-      p_product_id: product.id,
-      p_quantity: quantity ,
-    });
+    try {
+      await supabase.rpc("add_item_to_cart", {
+        p_user_id: userId,
+        p_product_id: product.id,
+        p_quantity: quantity,
+      });
 
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image_url,
-      quantity: quantity ,
-    });
+      addToCart({
+        id: String(product.id),
+        name: product.name,
+        price: product.price,
+        image: product.image_url ?? "../../../../../public/images/NoImage.jpg",
+        quantity: quantity,
+      });
 
-    setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 2000);
-  } catch (err) {
-    console.error("Failed to add to cart via RPC", err);
-  } finally {
-    setIsAdding(false);
-  }
-};
-
+      setJustAdded(true);
+      setTimeout(() => setJustAdded(false), 2000);
+    } catch (err) {
+      console.error("Failed to add to cart via RPC", err);
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   const handleBuyNow = () => {
     if (!userId) {
@@ -149,6 +91,11 @@ const handleAddToCart = async (quantity: number) => {
     }
   };
 
+  const formatRupiah = (value: string) => {
+    const number = value.replace(/\D/g, "");
+    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <ProductBreadcrumb />
@@ -159,7 +106,8 @@ const handleAddToCart = async (quantity: number) => {
             <div className="rounded-xl shadow-lg overflow-hidden mb-4 w-full">
               <Image
                 src={
-                  product.image_url ?? "../../../../public/images/NoImage.jpg"
+                  product.image_url ??
+                  "../../../../../public/images/NoImage.jpg"
                 }
                 alt="Selected product"
                 width={600}
@@ -189,7 +137,7 @@ const handleAddToCart = async (quantity: number) => {
 
           <div className="flex items-center gap-3">
             <span className="text-3xl font-bold text-foreground">
-              ${product.price.toFixed(2)}
+              Rp{formatRupiah(String(product.price))}
             </span>
           </div>
 
@@ -228,6 +176,16 @@ const handleAddToCart = async (quantity: number) => {
                   </Button>
                 </div>
               </div>
+            </div>
+
+            <div className="">
+              {product.stock > 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Stock: {product.stock}
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">Out of Stock</p>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
@@ -301,7 +259,7 @@ const handleAddToCart = async (quantity: number) => {
 
       <Features />
 
-      <RelatedProducts product={product} relatedProducts={relatedProducts} />
+      {/* <RelatedProducts product={product} relatedProducts={relatedProducts} /> */}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { RotateCcw, Shield, Truck } from "lucide-react";
 
 export default function Features() {
   const features = [
-    { icon: Truck, title: "Free Shipping", desc: "On orders over $50" },
+    { icon: Truck, title: "Free Shipping", desc: "On orders over Rp500.000" },
     { icon: Shield, title: "Warranty", desc: "1 year guarantee" },
     { icon: RotateCcw, title: "Easy Returns", desc: "30-day return policy" },
   ];

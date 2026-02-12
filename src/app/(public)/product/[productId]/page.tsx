@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useUser } from "@/lib/supabase/client";
 import { useProductStore } from "@/store/product-store";
@@ -36,11 +36,32 @@ export default function DetailProduct() {
   const [isLiked, setIsLiked] = useState(false);
 
   const products = useProductStore((state) => state.products);
+  const updateProduct = useProductStore((state) => state.updateProduct);
   const product = products.find((p) => String(p.id) === productId);
 
   if (!product) {
     return <ProductNotFound />;
   }
+
+  useEffect(() => {
+    const stockChannel = supabase
+      .channel("stock")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "products" },
+        (payload) => {
+          const existingProduct = products.find((p) => p.id === payload.new.id);
+          if (existingProduct) {
+            updateProduct({ ...existingProduct, stock: payload.new.stock });
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      stockChannel.unsubscribe();
+    };
+  }, []);
 
   const handleAddToCart = async (quantity: number) => {
     if (!userId) {
@@ -148,44 +169,45 @@ export default function DetailProduct() {
           <Separator />
 
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">
-                Quantity
-              </label>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center border border-border rounded-lg">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleQuantityChange("decrement")}
-                    disabled={quantity <= 1}
-                    className="h-10 w-10 rounded-r-none"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <span className="px-4 py-2 min-w-[60px] text-center font-medium">
-                    {quantity}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleQuantityChange("increment")}
-                    className="h-10 w-10 rounded-l-none"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
+            <div className="flex items-center gap-5">
+              <div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center border border-border rounded-lg">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleQuantityChange("decrement")}
+                      disabled={quantity <= 1}
+                      className="h-10 w-10 rounded-r-none"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="px-4 py-2 min-w-[60px] text-center font-medium">
+                      {quantity}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleQuantityChange("increment")}
+                      className="h-10 w-10 rounded-l-none"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="">
-              {product.stock > 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Stock: {product.stock}
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground">Out of Stock</p>
-              )}
+              <div className="">
+                {product.stock > 0 ? (
+                  <p className="font-medium text-foreground">
+                    Stock: {product.stock}
+                  </p>
+                ) : (
+                  <p className="font-mediumtext-muted-foreground">
+                    Out of Stock
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">

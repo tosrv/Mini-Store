@@ -5,7 +5,7 @@ import Filter from "@/components/product/Filter";
 import { useSearchParams } from "next/navigation";
 import { supabase, useUser } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
-import { ProductSkeleton } from "@/components/auth/Skeleton";
+import { ProductSkeleton } from "@/components/product/Skeleton";
 import { useCartStore } from "@/store/cart-store";
 import { useProductStore } from "@/store/product-store";
 import { Card } from "@/components/ui/card";
@@ -27,8 +27,8 @@ export default function Home() {
   useEffect(() => {
     if (products.length > 0) return;
 
-    setLoading(true);
     const fetchProducts = async () => {
+      setLoading(true);
       try {
         const { data: products, error } = await supabase
           .from("products")
@@ -147,13 +147,15 @@ export default function Home() {
           <Filter activeCategory={category} />
         </div>
         <Card className="h-fit w-50 sticky top-24 hidden lg:block p-3">
-          <DesktopFilter activeCategory={category}/>
+          <DesktopFilter activeCategory={category} />
         </Card>
-        {loading ? (
-          <ProductSkeleton />
-        ) : (
-          <ProductList products={finalProducts} />
-        )}
+        <div className="flex-1 max-w-7xl">
+          {loading ? (
+            <ProductSkeleton />
+          ) : (
+            <ProductList products={finalProducts} />
+          )}
+        </div>
       </div>
     </div>
   );

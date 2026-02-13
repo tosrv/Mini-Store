@@ -20,15 +20,15 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
-import { useUser } from "@/lib/supabase/client";
 import { useProductStore } from "@/store/product-store";
+import { useUserStore } from "@/store/user-store";
 
 export default function DetailProduct() {
   const addToCart = useCartStore((state) => state.addToCart);
 
   const { productId } = useParams<{ productId: string }>();
   const router = useRouter();
-  const userId = useUser();
+  const user = useUserStore((state) => state.user);
 
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
@@ -64,7 +64,7 @@ export default function DetailProduct() {
   }, []);
 
   const handleAddToCart = async (quantity: number) => {
-    if (!userId) {
+    if (!user) {
       router.push("/auth/login");
       return;
     }
@@ -73,7 +73,7 @@ export default function DetailProduct() {
 
     try {
       await supabase.rpc("add_item_to_cart", {
-        p_user_id: userId,
+        p_user_id: user.id,
         p_product_id: product.id,
         p_quantity: quantity,
       });
@@ -96,7 +96,7 @@ export default function DetailProduct() {
   };
 
   const handleBuyNow = () => {
-    if (!userId) {
+    if (!user) {
       router.push("/auth/login");
       return;
     }

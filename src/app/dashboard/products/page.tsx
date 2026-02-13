@@ -56,6 +56,8 @@ export default function ProductsPage() {
 
   let finalProducts = [...filteredProducts];
 
+  finalProducts.sort((a, b) => a.stock - b.stock);
+
   if (sort === "price-asc") {
     finalProducts.sort((a, b) => a.price - b.price);
   } else if (sort === "price-desc") {

@@ -4,15 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 // import { useCart } from "@/context/CartContext";
 import { Trash2 } from "lucide-react";
-import CartItem from "./CartItem";
+import CartItems from "./CartItems";
 import { useCartStore } from "@/store/cart-store";
-import { useUser } from "@/lib/supabase/client";
 import { supabase } from "@/lib/supabase/client";
+import { useUserStore } from "@/store/user-store";
 
 export default function CartItemList() {
   const cart = useCartStore((state) => state.cart);
   const clearCart = useCartStore((state) => state.clearCart);
-  const userId = useUser();
+  const user = useUserStore((state) => state.user);
 
   const handleClearCart = async (id: string) => {
     try {
@@ -31,8 +31,8 @@ export default function CartItemList() {
           variant="ghost"
           size="sm"
           onClick={() => {
-            if (!userId) return;
-            handleClearCart(userId);
+            if (!user) return;
+            handleClearCart(user.id);
           }}
           className="text-muted-foreground hover:text-destructive"
         >
@@ -43,7 +43,7 @@ export default function CartItemList() {
 
       <CardContent className="space-y-4">
         {cart.map((item, index) => (
-          <CartItem
+          <CartItems
             key={`${item.id}-${index}`}
             item={item}
             isLast={index === cart.length - 1}

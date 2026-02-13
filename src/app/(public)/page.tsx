@@ -3,10 +3,8 @@
 import ProductList from "@/components/home/ProductList";
 import Filter from "@/components/product/Filter";
 import { useSearchParams } from "next/navigation";
-import { supabase, useUser } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { ProductSkeleton } from "@/components/product/Skeleton";
-import { useCartStore } from "@/store/cart-store";
 import { useProductStore } from "@/store/product-store";
 import { Card } from "@/components/ui/card";
 import DesktopFilter from "@/components/layout/DesktopFilter";
@@ -17,101 +15,16 @@ export default function Home() {
   const category = searchParams.get("category") ?? "all";
   const sort = searchParams.get("sort") ?? "";
 
-  const { setProducts } = useProductStore();
   const products = useProductStore((state) => state.products);
   const [loading, setLoading] = useState(false);
 
-  const userId = useUser();
-  const { setCart } = useCartStore();
-
   useEffect(() => {
-    if (products.length > 0) return;
-
-    const fetchProducts = async () => {
+    if (products.length === 0) {
       setLoading(true);
-      try {
-        const { data: products, error } = await supabase
-          .from("products")
-          .select("id, name, description, price, stock, category, image_url");
-        if (error) {
-          console.error("Error fetching products:", error);
-        } else {
-          const formattedProducts = products.map((product) => ({
-            id: product.id,
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            stock: product.stock,
-            category: product.category,
-            image_url: product.image_url,
-          }));
-
-          setProducts(formattedProducts);
-        }
-      } catch (err) {
-        console.error("Error fetching products:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProducts();
-  }, [products.length, setProducts]);
-
-  useEffect(() => {
-    if (!userId) return;
-
-    const fetchCart = async () => {
-      try {
-        const { data: existingCart, error: cartError } = await supabase
-          .from("carts")
-          .select("id")
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        if (cartError) throw cartError;
-        if (!existingCart) return;
-
-        const cartId = existingCart.id;
-
-        const { data: cartItems, error: cartItemsError } = await supabase
-          .from("cart_items")
-          .select("product_id, quantity")
-          .eq("cart_id", cartId);
-
-        if (cartItemsError) throw cartItemsError;
-
-        if (!cartItems || cartItems.length === 0) {
-          setCart([]);
-          return;
-        }
-
-        const productIds = cartItems.map((item) => item.product_id);
-        const { data: products, error: productsError } = await supabase
-          .from("products")
-          .select("id, name, price, image_url")
-          .in("id", productIds);
-
-        if (productsError) throw productsError;
-
-        const cartItemsWithProduct = cartItems.map((item) => {
-          const product = products.find((p) => p.id === item.product_id);
-          return {
-            id: item.product_id,
-            quantity: item.quantity,
-            name: product?.name || "",
-            price: product?.price || 0,
-            image: product?.image_url || "",
-          };
-        });
-
-        setCart(cartItemsWithProduct);
-      } catch (err) {
-        console.error("Failed to fetch cart:", err);
-      }
-    };
-
-    fetchCart();
-  }, [userId, setCart]);
+    } else {
+      setLoading(false);
+    }
+  }, [products.length]);
 
   const searchProducts = products.filter((product) =>
     product.name.toLowerCase().includes(query.toLowerCase()),

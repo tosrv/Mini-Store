@@ -11,7 +11,21 @@ export const createProductColumns = (
 ): ColumnDef<Product>[] => [
   { accessorKey: "name", header: "Name" },
   { accessorKey: "price", header: "Price" },
-  { accessorKey: "stock", header: "Stock" },
+  {
+    accessorKey: "stock",
+    header: "Stock",
+    cell: ({ row }) => {
+      const stock = row.original.stock;
+      return (
+        <div className="flex justify-between max-w-10">
+          <span className={stock <= 10 ? "text-red-500 font-semibold" : ""}>
+            {stock}
+          </span>
+          <span>{stock <= 10 ? "⚠️" : ""}</span>
+        </div>
+      );
+    },
+  },
   { accessorKey: "category", header: "Category" },
 
   {

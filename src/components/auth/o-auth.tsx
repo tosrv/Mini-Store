@@ -1,13 +1,11 @@
 "use client";
 
 import { FcGoogle } from "react-icons/fc";
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 
 type Provider = "google";
 
 export default function OAuth() {
-  const supabase = createClient();
-
   const handleOAuth = async (provider: Provider) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,

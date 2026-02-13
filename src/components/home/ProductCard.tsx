@@ -10,16 +10,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Product } from "@/types/product";
-import { useUser } from "@/lib/supabase/client";
 import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/user-store";
 
 export default function ProductCard({ product }: { product: Product }) {
   const [isLiked, setIsLiked] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
-  const userId = useUser();
+  const user = useUserStore((state) => state.user);
   const router = useRouter();
 
   const addToCart = useCartStore((state) => state.addToCart);
@@ -28,7 +28,7 @@ export default function ProductCard({ product }: { product: Product }) {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!userId) {
+    if (!user) {
       router.push("/auth/login");
       return;
     }
@@ -37,7 +37,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
     try {
       const { error } = await supabase.rpc("add_item_to_cart", {
-        p_user_id: userId,
+        p_user_id: user.id,
         p_product_id: product.id,
         p_quantity: 1,
       });
@@ -76,7 +76,7 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <Card className="group overflow-hidden bg-card border-border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+    <Card className="group flex flex-col h-full overflow-hidden bg-card border-border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
       <div className="relative overflow-hidden">
         <Button
           variant="ghost"
@@ -126,22 +126,22 @@ export default function ProductCard({ product }: { product: Product }) {
         </Link>
       </div>
 
-      <CardContent className="p-4 space-y-3">
-        <Link href={`/product/${product.id}`}>
-          <h2 className="font-semibold text-foreground line-clamp-2 hover:text-primary transition-colors">
-            {product.name}
-          </h2>
-        </Link>
+      <CardContent className="p-4 space-y-3 h-full flex flex-col flex-1">
+          <Link href={`/product/${product.id}`}>
+            <h2 className="font-semibold text-foreground line-clamp-2 hover:text-primary transition-colors">
+              {product.name}
+            </h2>
+          </Link>
 
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-foreground">
-            Rp{formatRupiah(String(product.price))}
-          </span>
-        </div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold text-foreground">
+              Rp{formatRupiah(String(product.price))}
+            </span>
+          </div>
 
         <Button
           className={cn(
-            "w-full transition-all duration-300",
+            "w-full mt-auto transition-all duration-300",
             justAdded
               ? "bg-green-600 text-white hover:bg-green-600"
               : "bg-primary text-primary-foreground hover:bg-primary/90",

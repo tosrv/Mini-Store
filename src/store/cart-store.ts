@@ -1,15 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-interface CartItem {
+export interface CartItem {
   id: string;
   name: string;
   price: number;
   image: string;
   quantity: number;
-};
+}
 
-interface CartStore  {
+interface CartStore {
   cart: CartItem[];
 
   addToCart: (item: CartItem) => void;
@@ -17,14 +17,11 @@ interface CartStore  {
   updateQuantity: (id: string, qty: number) => void;
   clearCart: () => void;
   setCart: (items: CartItem[]) => void;
-
-  totalItems: () => number;
-  subtotal: () => number;
-};
+}
 
 export const useCartStore = create<CartStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       cart: [],
 
       setCart: (items) => set({ cart: items }),
@@ -61,12 +58,6 @@ export const useCartStore = create<CartStore>()(
         })),
 
       clearCart: () => set({ cart: [] }),
-
-      totalItems: () =>
-        get().cart.reduce((sum, item) => sum + item.quantity, 0),
-
-      subtotal: () =>
-        get().cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
     }),
     {
       name: "cart", // localStorage key

@@ -3,27 +3,21 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 // import { useCart } from "@/context/CartContext";
-import { useCartStore } from "@/store/cart-store";
+import { CartItem, useCartStore } from "@/store/cart-store";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
-import { useUser } from "@/lib/supabase/client";
+import { useUserStore } from "@/store/user-store";
 
 interface CartItemProps {
-  item: {
-    id: string;
-    name: string;
-    price: number;
-    image: string;
-    quantity: number;
-  };
+  item: CartItem;
   isLast: boolean;
 }
 
-export default function CartItem({ item, isLast }: CartItemProps) {
+export default function CartItems({ item, isLast }: CartItemProps) {
   // const { removeFromCart, updateQuantity } = useCart();
 
-  const userId = useUser();
+  const user = useUserStore((state) => state.user);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
 
@@ -37,7 +31,7 @@ export default function CartItem({ item, isLast }: CartItemProps) {
   };
 
   const handleQuantity = async (productId: string, newQuantity: number) => {
-    if (newQuantity < 1 || !userId) return;
+    if (newQuantity < 1 || !user) return;
 
     updateQuantity(productId, newQuantity);
 
@@ -45,7 +39,7 @@ export default function CartItem({ item, isLast }: CartItemProps) {
       const { data } = await supabase
         .from("carts")
         .select("id")
-        .eq("user_id", userId)
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (!data) return;

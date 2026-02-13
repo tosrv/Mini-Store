@@ -4,17 +4,27 @@ import React from "react";
 import { Nav } from "./Nav";
 import {
   ChevronRight,
-  House,
   LayoutDashboard,
+  LogOut,
   Package,
   ShoppingCart,
-  UsersRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { supabase } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { useCartStore } from "@/store/cart-store";
+import { useUserStore } from "@/store/user-store";
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const router = useRouter();
+
+  const logout = async () => {
+    useCartStore.getState().clearCart();
+    useUserStore.getState().clearUser();
+    await supabase.auth.signOut();
+    router.push("/auth/login");
+  };
 
   function toggleSidebar() {
     setIsCollapsed((prev) => !prev);
@@ -40,54 +50,58 @@ export default function Sidebar() {
         </Button>
       </div>
 
-      <div className="py-5">
-        <Link
-          className="text-2xl tracking-tight text-gray-900 hover:text-gray-700 transition-colors"
-          href="/"
-          aria-label="YellowShop Home"
-        >
-          {isCollapsed ? (
-            <p className="text-center font-bold">
-              Y<span className="text-primary">S</span>
-            </p>
-          ) : (
-            <p className="font-bold">
-              YELLOW<span className="text-primary">STORE</span>
-            </p>
-          )}
-        </Link>
-      </div>
+      <div className="flex flex-col justify-between h-full">
+        <section className="m-0 p-0">
+          <div className="my-5 mx-5">
+            {isCollapsed ? (
+              <p className="text-center font-bold">
+                Y<span className="text-primary">S</span>
+              </p>
+            ) : (
+              <p className="font-bold">
+                YELLOW<span className="text-primary">STORE</span>
+              </p>
+            )}
+          </div>
 
-      <Nav
-        isCollapsed={isCollapsed}
-        links={[
-          { title: "Home", href: "/", icon: House, variant: "default" },
-          {
-            title: "Dashboard",
-            href: "/dashboard",
-            icon: LayoutDashboard,
-            variant: "default",
-          },
-          {
-            title: "Users",
-            href: "/dashboard/users",
-            icon: UsersRound,
-            variant: "ghost",
-          },
-          {
-            title: "Orders",
-            href: "/dashboard/orders",
-            icon: ShoppingCart,
-            variant: "ghost",
-          },
-          {
-            title: "Products",
-            href: "/dashboard/products",
-            icon: Package,
-            variant: "ghost",
-          },
-        ]}
-      />
+          <Nav
+            isCollapsed={isCollapsed}
+            links={[
+              {
+                title: "Dashboard",
+                href: "/dashboard",
+                icon: LayoutDashboard,
+                variant: "default",
+              },
+              {
+                title: "Orders",
+                href: "/dashboard/orders",
+                icon: ShoppingCart,
+                variant: "ghost",
+              },
+              {
+                title: "Products",
+                href: "/dashboard/products",
+                icon: Package,
+                variant: "ghost",
+              },
+            ]}
+          />
+        </section>
+        {isCollapsed ? (
+          <div className="w-full flex items-center justify-center">
+            <Button className="rounded-full w-9 h-9" onClick={logout}>
+              <LogOut />
+            </Button>
+          </div>
+        ) : (
+          <div className="w-full flex items-center justify-center">
+            <Button className="w-full" onClick={logout}>
+              Logout
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

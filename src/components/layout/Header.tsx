@@ -1,21 +1,20 @@
 "use client";
 
 // import { useCart } from "@/context/CartContext";
-import { Menu, Search, ShoppingCart, X } from "lucide-react";
+import { Menu, ReceiptText, Search, ShoppingCart, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { supabase } from "@/lib/supabase/client";
 import { LogoutButton } from "../auth/logout-button";
 import { useCartStore } from "@/store/cart-store";
 import ProductSearch from "../product/Search";
 import { useUserStore } from "@/store/user-store";
 
 export default function Header() {
+  const user = useUserStore((state) => state.user);
   const cart = useCartStore((state) => state.cart);
-  const cartCount =
-    cart?.reduce((total, item) => total + item.quantity, 0) || 0;
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
@@ -30,41 +29,6 @@ export default function Header() {
     searchQuery ? p.set("q", searchQuery) : p.delete("q");
     router.push(`/?${p.toString()}`);
   };
-
-  const user = useUserStore((state) => state.user);
-  const setUser = useUserStore((state) => state.setUser);
-  const clearUser = useUserStore((state) => state.clearUser);
-
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_OUT" || !session?.user) {
-        clearUser();
-        return;
-      }
-
-      const metadata = session.user.user_metadata;
-      const temporaryUser = {
-        name: metadata.full_name || metadata.name || "New User",
-        role: "customer", 
-      };
-
-      setUser(temporaryUser);
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("name, role")
-        .eq("id", session.user.id)
-        .single();
-
-      if (!error && data) {
-        setUser(data); 
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [setUser, clearUser]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -89,7 +53,7 @@ export default function Header() {
 
   const isActivePath = (path: string) => pathname === path;
 
-  const navItems = [{ href: "/contact", label: "Contact" }];
+  // const navItems = [{ href: "/order", label: "Orders" }];
 
   return (
     <header
@@ -109,27 +73,6 @@ export default function Header() {
             >
               YELLOW<span className="text-primary">STORE</span>
             </Link>
-
-            {/* <nav
-              className="hidden md:flex items-center space-x-1"
-              role="navigation"
-              aria-label="Main navigation"
-            >
-              {navItems.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`relative py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    isActivePath(href)
-                      ? "bg-orange-100 shadow-md"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                  }`}
-                  aria-current={isActivePath(href) ? "page" : undefined}
-                >
-                  {label}
-                </Link>
-              ))}
-            </nav> */}
           </div>
 
           <ProductSearch
@@ -148,6 +91,27 @@ export default function Header() {
               <Search className="h-5 w-5 text-gray-700" />
             </button>
 
+            <Link
+              href="/order"
+              className="p-2 rounded-full hover:bg-gray-100 transition-all duration-200 group"
+              aria-label="Orders"
+            >
+              <ReceiptText className="h-6 w-6 text-gray-700 group-hover:text-gray-900 transition-colors" />
+            </Link>
+
+            <Link
+              href="/cart"
+              className="relative p-2 rounded-full hover:bg-gray-100 transition-all duration-200 group"
+              aria-label={`Shopping cart with ${totalItems} items`}
+            >
+              <ShoppingCart className="h-6 w-6 text-gray-700 group-hover:text-gray-900 transition-colors" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                  {totalItems > 99 ? "99+" : totalItems}
+                </span>
+              )}
+            </Link>
+
             <button
               onClick={toggleMobileMenu}
               className="md:hidden p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -160,22 +124,6 @@ export default function Header() {
                 <Menu className="h-6 w-6 text-gray-700" />
               )}
             </button>
-
-            <Link
-              href="/cart"
-              className="relative p-2 rounded-full hover:bg-gray-100 transition-all duration-200 group"
-              aria-label={`Shopping cart with ${cartCount} items`}
-            >
-              <ShoppingCart className="h-6 w-6 text-gray-700 group-hover:text-gray-900 transition-colors" />
-              {cartCount > 0 && (
-                <span
-                  className="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1"
-                  aria-label={`${cartCount} items in cart`}
-                >
-                  {cartCount > 99 ? "99+" : cartCount}
-                </span>
-              )}
-            </Link>
 
             {user ? (
               <div className="hidden sm:flex items-center space-x-2">
@@ -228,7 +176,7 @@ export default function Header() {
             role="navigation"
             aria-label="Mobile navigation"
           >
-            <div className="flex flex-col space-y-3 pb-4 border-b border-gray-200">
+            {/* <div className="flex flex-col space-y-3">
               {navItems.map(({ href, label }) => (
                 <Link
                   key={href}
@@ -244,7 +192,7 @@ export default function Header() {
                   {label}
                 </Link>
               ))}
-            </div>
+            </div> */}
 
             {user ? (
               <div className="flex flex-col space-y-3 pt-4 sm:hidden">

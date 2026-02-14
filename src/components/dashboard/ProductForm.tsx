@@ -10,6 +10,14 @@ import { supabase } from "@/lib/supabase/client";
 import { useProductStore } from "@/store/product-store";
 import { Product } from "@/types/product";
 import { X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface FormState {
   name: string;
@@ -20,6 +28,15 @@ interface FormState {
   image_url: File | string | null;
 }
 
+const categories = [
+  { value: "sneakers", label: "Sneakers" },
+  { value: "running", label: "Running" },
+  { value: "casual", label: "Casual" },
+  { value: "formal", label: "Formal" },
+  { value: "boots", label: "Boots" },
+  { value: "sandals", label: "Sandals" },
+];
+
 export function ProductForm({
   productToEdit,
   onSuccess,
@@ -27,40 +44,28 @@ export function ProductForm({
   productToEdit?: Product;
   onSuccess?: () => void;
 }) {
-  const [form, setForm] = useState<FormState>({
-    name: productToEdit?.name ?? "",
-    price: productToEdit?.price.toString() ?? "",
-    stock: productToEdit?.stock.toString() ?? "",
-    category: productToEdit?.category ?? "",
-    description: productToEdit?.description ?? "",
-    image_url: productToEdit?.image_url ?? null,
-  });
-
   const addProduct = useProductStore((state) => state.addProduct);
   const updateProduct = useProductStore((state) => state.updateProduct);
-
-  const inputs = [
-    { name: "name", label: "Name", type: "text" },
-    { name: "price", label: "Price", type: "number" },
-    { name: "stock", label: "Stock", type: "number" },
-    { name: "category", label: "Category", type: "text" },
-  ] as const;
-
-  const MAX_DESC = 500;
+  const MAX_DESC = 1000;
 
   const formatRupiah = (value: string) => {
     const number = value.replace(/\D/g, "");
     return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
-  const handleChange = (
-    name: keyof FormState,
-    type: "text" | "number",
-    value: string,
-  ) => {
+  const [form, setForm] = useState<FormState>({
+    name: productToEdit?.name ?? "",
+    price: formatRupiah(String(productToEdit?.price)) ?? "",
+    stock: productToEdit?.stock.toString() ?? "",
+    category: productToEdit?.category ?? "",
+    description: productToEdit?.description ?? "",
+    image_url: productToEdit?.image_url ?? null,
+  });
+
+  const handleChange = (name: keyof FormState, value: string) => {
     let formatted = value;
 
-    if (type === "number") {
+    if (name === "price" || name === "stock") {
       const raw = value.replace(/\D/g, "");
       formatted = name === "price" ? formatRupiah(raw) : raw;
     }
@@ -143,7 +148,6 @@ export function ProductForm({
 
   return (
     <>
-      {/* BODY (scrollable) */}
       <div className="flex-1 overflow-y-auto px-4">
         <form id="product-form" className="space-y-4" onSubmit={handleSubmit}>
           {/* IMAGE */}
@@ -179,7 +183,6 @@ export function ProductForm({
                   }
                 />
 
-                {/* ✅ Tombol remove hanya kalau ada File */}
                 {form.image_url instanceof File && (
                   <Button
                     type="button"
@@ -197,27 +200,78 @@ export function ProductForm({
             )}
           </div>
 
-          {/* INPUTS */}
-          {inputs.map((input) => (
-            <div key={input.name} className="space-y-1">
-              <Label htmlFor={input.name}>{input.label}</Label>
+          {/* Name */}
+          <div className="space-y-1">
+            <Label htmlFor="product">Name</Label>
+            <Input
+              id="product"
+              type="text"
+              value={form.name}
+              onChange={(e) => handleChange("name", e.target.value)}
+              className="shadow-none h-12 rounded-full"
+            />
+          </div>
+
+          {/* Price */}
+          <div className="space-y-1">
+            <Label htmlFor="price">Price</Label>
+            <div className="flex">
+              <span className="px-4 py-2 bg-muted rounded-l-full border border-r-0 text-xl font-semibold text-gray-400">
+                Rp
+              </span>
               <Input
-                id={input.name}
+                id="price"
                 type="text"
-                inputMode={input.type === "number" ? "numeric" : "text"}
-                value={form[input.name]}
-                onChange={(e) =>
-                  handleChange(input.name, input.type, e.target.value)
-                }
+                inputMode="numeric"
+                value={form.price}
+                onChange={(e) => handleChange("price", e.target.value)}
+                className="rounded-r-full flex-1 shadow-none h-12"
+              />
+            </div>
+          </div>
+
+          {/* Stock + Category */}
+          <div className="flex gap-4">
+            <div className="flex-1 space-y-1">
+              <Label htmlFor="stock">Stock</Label>
+              <Input
+                id="stock"
+                type="text"
+                inputMode="numeric"
+                value={form.stock}
+                onChange={(e) => handleChange("stock", e.target.value)}
                 className="shadow-none h-12 rounded-full"
               />
             </div>
-          ))}
+            <div className="flex-1 space-y-1">
+              <Label htmlFor="category">Category</Label>
+              <Select
+                value={form.category}
+                onValueChange={(value) =>
+                  setForm((prev) => ({ ...prev, category: value }))
+                }
+              >
+                <SelectTrigger className="shadow-none h-12 rounded-full">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {categories.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
           {/* DESCRIPTION */}
           <div className="space-y-1">
             <Label htmlFor="description">Description</Label>
             <Textarea
+              spellCheck={false}
               id="description"
               rows={4}
               maxLength={MAX_DESC}

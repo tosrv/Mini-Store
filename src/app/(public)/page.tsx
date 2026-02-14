@@ -37,6 +37,8 @@ export default function Home() {
 
   let finalProducts = [...filteredProducts];
 
+  finalProducts.sort((a, b) => b.stock - a.stock);
+
   if (sort === "price-asc") {
     finalProducts.sort((a, b) => a.price - b.price);
   } else if (sort === "price-desc") {

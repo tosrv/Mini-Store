@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase/client";
 import { useEffect } from "react";
 import { useCartStore } from "@/store/cart-store";
 import { useProductStore } from "@/store/product-store";
+import { useOrderStore } from "@/store/order-store";
 
 export default function Initializer() {
   const products = useProductStore((state) => state.products);
@@ -15,6 +16,7 @@ export default function Initializer() {
   const clearUser = useUserStore((state) => state.clearUser);
 
   const setCart = useCartStore((state) => state.setCart);
+  const setOrders = useOrderStore((state) => state.setOrders);
 
   // Initialize products
   useEffect(() => {
@@ -53,30 +55,29 @@ export default function Initializer() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        // 1. Ambil data dari metadata dulu biar Header langsung update nama
         const meta = session.user.user_metadata;
         setUser({
           id: session.user.id,
           name: meta.full_name || meta.name || "User",
-          role: "customer", // Default role
+          email: meta.email || "",
+          phone: "",
+          address: "",
         });
 
-        // 2. Fungsi untuk ambil data profile dengan proteksi
         const fetchProfile = async () => {
           const { data, error } = await supabase
             .from("profiles")
-            .select("id, name, role")
+            .select("id, name, email, phone, address")
             .eq("id", session.user.id)
             .single();
 
           if (!error && data) {
-            setUser(data); // Kalau dapet, update state ke data yang lebih akurat
+            setUser(data);
           } else {
-            // Jika belum dapet, coba sekali lagi setelah 1.5 detik
             setTimeout(async () => {
               const { data: retryData } = await supabase
                 .from("profiles")
-                .select("id, name, role")
+                .select("id, name, email, phone, address")
                 .eq("id", session.user.id)
                 .single();
               if (retryData) setUser(retryData);
@@ -149,6 +150,54 @@ export default function Initializer() {
 
     fetchCart();
   }, [user, setCart]);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const { data: orders, error: ordersError } = await supabase
+          .from("orders")
+          .select(
+            "id, status, total_price, shipping_price, tax_price, created_at, profiles!inner(name), order_items!inner(quantity)",
+          );
+
+        if (ordersError) throw ordersError;
+        if (!orders || orders.length === 0) {
+          setOrders([]);
+          return;
+        }
+
+        const formattedOrders = orders.map((order: any) => ({
+          id: order.id,
+          name: order.profiles.name,
+          status: order.status,
+          price: order.total_price,
+          shipping: order.shipping_price,
+          tax: order.tax_price,
+          created_at: order.created_at,
+          quantity: Array.isArray(order.order_items)
+            ? order.order_items.reduce(
+                (sum: number, item: any) => sum + (item.quantity ?? 0),
+                0,
+              )
+            : 0,
+        }));
+
+        setOrders(formattedOrders);
+      } catch (err) {
+        console.error("Failed to fetch orders:", err);
+      }
+    };
+
+    fetchOrders();
+  }, [setOrders]);
+
+  useEffect(() => {
+    useProductStore.getState().initRealtime();
+  }, []);
+
+  useEffect(() => {
+    useOrderStore.getState().initRealtime();
+  }, []);
 
   return null;
 }

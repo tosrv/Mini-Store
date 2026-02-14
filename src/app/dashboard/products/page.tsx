@@ -7,9 +7,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Filter from "@/components/product/Filter";
 import ProductSearch from "@/components/product/Search";
 import { useState, useMemo } from "react";
-
 import { Button } from "@/components/ui/button";
-
+import { Product } from "@/types/product";
+import { ProductForm } from "@/components/dashboard/ProductForm";
+import { createProductColumns } from "@/components/columns/ProductColumn";
+import { supabase } from "@/lib/supabase/client";
+import { toast } from "react-hot-toast";
 import {
   Drawer,
   DrawerContent,
@@ -17,11 +20,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-
-import { Product } from "@/types/product";
-import { ProductForm } from "@/components/dashboard/ProductForm";
-import { createProductColumns } from "@/components/columns/ProductColumn";
-import { supabase } from "@/lib/supabase/client";
 
 export default function ProductsPage() {
   const products = useProductStore((state) => state.products);
@@ -74,22 +72,51 @@ export default function ProductsPage() {
     setOpenDrawer(true);
   };
 
-  const handleDelete = async (product: Product) => {
-    if (!confirm("Delete this product?")) return;
-
-    const { error } = await supabase
-      .from("products")
-      .delete()
-      .eq("id", product.id);
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
+  const handleDelete = (product: Product) => {
     if (!product.id) return;
 
-    deleteProduct(product.id);
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <span className="font-medium">
+          Are you sure you want to delete this product?
+        </span>
+
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            className="shadow-none"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </Button>
+          
+          <Button
+            variant="destructive"
+            onClick={async () => {
+              toast.dismiss(t.id);
+
+              const { error } = await supabase
+                .from("products")
+                .delete()
+                .eq("id", product.id);
+
+              if (error) {
+                console.error(error);
+                toast.error("Failed to delete");
+                return;
+              }
+
+              if (!product.id) return;
+
+              deleteProduct(product.id);
+              toast.success("Product deleted");
+            }}
+          >
+            Delete
+          </Button>
+        </div>
+      </div>
+    ));
   };
 
   const columns = useMemo(

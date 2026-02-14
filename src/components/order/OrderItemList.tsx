@@ -14,7 +14,7 @@ export default function OrderItemList() {
 
   return (
     <Card>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 lg:w-5xl">
         {userOrders.map((item, index) => (
           <OrderItems
             key={`${item.id}-${index}`}

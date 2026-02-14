@@ -44,10 +44,13 @@ export function SignUpForm({
       }
 
       const userId = data.user?.id;
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: userId,
-        name,
-      });
+      console.log(userId, "userId");
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          name,
+        })
+        .eq("id", userId);
 
       if (profileError) {
         console.error("Error creating profile", profileError.message);

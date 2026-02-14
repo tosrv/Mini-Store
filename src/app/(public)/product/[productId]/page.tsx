@@ -5,7 +5,7 @@ import ProductBreadcrumb from "@/components/product/ProductBreadcrumb";
 import ProductNotFound from "@/components/product/ProductNotFound";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
+import { cn, formatRupiah } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import {
   Check,
@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useProductStore } from "@/store/product-store";
 import { useUserStore } from "@/store/user-store";
@@ -36,32 +36,11 @@ export default function DetailProduct() {
   const [isLiked, setIsLiked] = useState(false);
 
   const products = useProductStore((state) => state.products);
-  const updateProduct = useProductStore((state) => state.updateProduct);
   const product = products.find((p) => String(p.id) === productId);
 
   if (!product) {
     return <ProductNotFound />;
   }
-
-  useEffect(() => {
-    const stockChannel = supabase
-      .channel("stock")
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "products" },
-        (payload) => {
-          const existingProduct = products.find((p) => p.id === payload.new.id);
-          if (existingProduct) {
-            updateProduct({ ...existingProduct, stock: payload.new.stock });
-          }
-        },
-      )
-      .subscribe();
-
-    return () => {
-      stockChannel.unsubscribe();
-    };
-  }, []);
 
   const handleAddToCart = async (quantity: number) => {
     if (!user) {
@@ -112,11 +91,6 @@ export default function DetailProduct() {
     }
   };
 
-  const formatRupiah = (value: string) => {
-    const number = value.replace(/\D/g, "");
-    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  };
-
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <ProductBreadcrumb />
@@ -158,7 +132,7 @@ export default function DetailProduct() {
 
           <div className="flex items-center gap-3">
             <span className="text-3xl font-bold text-foreground">
-              Rp{formatRupiah(String(product.price))}
+              Rp {formatRupiah(product.price)}
             </span>
           </div>
 
@@ -177,7 +151,7 @@ export default function DetailProduct() {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleQuantityChange("decrement")}
-                      disabled={quantity <= 1}
+                      disabled={quantity <= 1 || product.stock <= 0}
                       className="h-10 w-10 rounded-r-none"
                     >
                       <Minus className="h-4 w-4" />
@@ -190,6 +164,7 @@ export default function DetailProduct() {
                       size="icon"
                       onClick={() => handleQuantityChange("increment")}
                       className="h-10 w-10 rounded-l-none"
+                      disabled={product.stock <= 0}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -203,9 +178,7 @@ export default function DetailProduct() {
                     Stock: {product.stock}
                   </p>
                 ) : (
-                  <p className="font-mediumtext-muted-foreground">
-                    Out of Stock
-                  </p>
+                  <p className="font-mediumtext-muted-foreground">Stock: 0</p>
                 )}
               </div>
             </div>
@@ -215,12 +188,14 @@ export default function DetailProduct() {
                 size="lg"
                 className={cn(
                   "flex-1 transition-all duration-300",
-                  justAdded
-                    ? "bg-green-600 text-white hover:bg-green-600"
-                    : "bg-primary text-primary-foreground hover:bg-primary/90",
+                  product.stock === 0
+                    ? "bg-red-500 text-white hover:bg-red-500"
+                    : justAdded
+                      ? "bg-green-600 text-white hover:bg-green-600"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90",
                 )}
                 onClick={() => handleAddToCart(quantity)}
-                disabled={isAdding}
+                disabled={isAdding || product.stock === 0}
               >
                 {isAdding ? (
                   <div className="flex items-center gap-2">
@@ -232,6 +207,8 @@ export default function DetailProduct() {
                     <Check className="h-4 w-4" />
                     Added to Cart!
                   </div>
+                ) : product.stock === 0 ? (
+                  "Out of Stock"
                 ) : (
                   <div className="flex items-center gap-2">
                     <ShoppingCart className="h-4 w-4" />
@@ -245,6 +222,7 @@ export default function DetailProduct() {
                 variant="outline"
                 onClick={handleBuyNow}
                 className="flex-1"
+                disabled={product.stock === 0}
               >
                 Buy Now
               </Button>

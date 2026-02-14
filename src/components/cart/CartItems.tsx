@@ -8,6 +8,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
 import { useUserStore } from "@/store/user-store";
+import { formatRupiah } from "@/lib/utils";
 
 interface CartItemProps {
   item: CartItem;
@@ -54,11 +55,6 @@ export default function CartItems({ item, isLast }: CartItemProps) {
     }
   };
 
-  const formatRupiah = (value: string) => {
-    const number = value.replace(/\D/g, "");
-    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  };
-
   return (
     <div>
       <div className="flex items-start gap-4">
@@ -79,7 +75,7 @@ export default function CartItems({ item, isLast }: CartItemProps) {
                 {item.name}
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Rp{formatRupiah(String(item.price))} each
+                Rp {formatRupiah(item.price)} each
               </p>
             </div>
 
@@ -119,7 +115,7 @@ export default function CartItems({ item, isLast }: CartItemProps) {
 
             <div className="text-right">
               <p className="text-lg font-bold text-foreground">
-                Rp{formatRupiah(String(item.price * item.quantity))}
+                Rp {formatRupiah(item.price * item.quantity)}
               </p>
             </div>
           </div>

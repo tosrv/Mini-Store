@@ -1,6 +1,5 @@
 "use client";
 
-// import { useCart } from "@/context/CartContext";
 import { Menu, ReceiptText, Search, ShoppingCart, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -50,10 +49,6 @@ export default function Header() {
   const closeMobileMenu = useCallback(() => {
     setIsMobileOpen(false);
   }, []);
-
-  const isActivePath = (path: string) => pathname === path;
-
-  // const navItems = [{ href: "/order", label: "Orders" }];
 
   return (
     <header
@@ -127,19 +122,11 @@ export default function Header() {
 
             {user ? (
               <div className="hidden sm:flex items-center space-x-2">
-                {user.role === "admin" ? (
-                  <Link href="/dashboard">
-                    <Button variant="ghost" size="sm" className="text-sm">
-                      Dashboard
-                    </Button>
-                  </Link>
-                ) : (
-                  <Link href="/profile">
-                    <Button variant="ghost" size="sm" className="text-sm">
-                      {user.name.trim().split(" ")[0]}
-                    </Button>
-                  </Link>
-                )}
+                <Link href="/profile">
+                  <Button variant="ghost" size="sm" className="text-sm">
+                    {user.name.trim().split(" ")[0]}
+                  </Button>
+                </Link>
                 <LogoutButton />
               </div>
             ) : (
@@ -176,36 +163,12 @@ export default function Header() {
             role="navigation"
             aria-label="Mobile navigation"
           >
-            {/* <div className="flex flex-col space-y-3">
-              {navItems.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={closeMobileMenu}
-                  className={`text-sm font-medium py-2 px-3 rounded-lg transition-all ${
-                    isActivePath(href)
-                      ? "bg-orange-100"
-                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
-                  aria-current={isActivePath(href) ? "page" : undefined}
-                >
-                  {label}
-                </Link>
-              ))}
-            </div> */}
-
             {user ? (
               <div className="flex flex-col space-y-3 pt-4 sm:hidden">
                 <Button variant="outline" className="w-full text-sm" asChild>
-                  {user.role === "admin" ? (
-                    <Link href="/dashboard" onClick={closeMobileMenu}>
-                      Dashboard
-                    </Link>
-                  ) : (
-                    <Link href="/profile" onClick={closeMobileMenu}>
-                      Profile
-                    </Link>
-                  )}
+                  <Link href="/profile" onClick={closeMobileMenu}>
+                    Profile
+                  </Link>
                 </Button>
 
                 <LogoutButton />

@@ -4,13 +4,21 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Product } from "@/types/product";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
+import { formatRupiah } from "@/lib/utils";
 
 export const createProductColumns = (
   onEdit: (product: Product) => void,
   onDelete: (product: Product) => void,
 ): ColumnDef<Product>[] => [
   { accessorKey: "name", header: "Name" },
-  { accessorKey: "price", header: "Price" },
+  {
+    accessorKey: "price",
+    header: "Price",
+    cell: ({ row }) => {
+      const price = row.original.price;
+      return <span>Rp {formatRupiah(price)}</span>;
+    },
+  },
   {
     accessorKey: "stock",
     header: "Stock",
@@ -27,7 +35,6 @@ export const createProductColumns = (
     },
   },
   { accessorKey: "category", header: "Category" },
-
   {
     id: "actions",
     header: "Actions",

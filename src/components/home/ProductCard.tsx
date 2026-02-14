@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 // import { useCart } from "@/context/CartContext";
-import { cn } from "@/lib/utils";
+import { cn, formatRupiah } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { Check, Eye, Heart, ShoppingCart } from "lucide-react";
 import Image from "next/image";
@@ -70,11 +70,6 @@ export default function ProductCard({ product }: { product: Product }) {
     setIsLiked(!isLiked);
   };
 
-  const formatRupiah = (value: string) => {
-    const number = value.replace(/\D/g, "");
-    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  };
-
   return (
     <Card className="group flex flex-col h-full overflow-hidden bg-card border-border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
       <div className="relative overflow-hidden">
@@ -127,27 +122,29 @@ export default function ProductCard({ product }: { product: Product }) {
       </div>
 
       <CardContent className="p-4 space-y-3 h-full flex flex-col flex-1">
-          <Link href={`/product/${product.id}`}>
-            <h2 className="font-semibold text-foreground line-clamp-2 hover:text-primary transition-colors">
-              {product.name}
-            </h2>
-          </Link>
+        <Link href={`/product/${product.id}`}>
+          <h2 className="font-semibold text-foreground line-clamp-2 hover:text-primary transition-colors">
+            {product.name}
+          </h2>
+        </Link>
 
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-foreground">
-              Rp{formatRupiah(String(product.price))}
-            </span>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-bold text-foreground">
+            Rp {formatRupiah(product.price)}
+          </span>
+        </div>
 
         <Button
           className={cn(
             "w-full mt-auto transition-all duration-300",
-            justAdded
-              ? "bg-green-600 text-white hover:bg-green-600"
-              : "bg-primary text-primary-foreground hover:bg-primary/90",
+            product.stock === 0
+              ? "bg-red-500 text-white hover:bg-red-500"
+              : justAdded
+                ? "bg-green-600 text-white hover:bg-green-600"
+                : "bg-primary text-primary-foreground hover:bg-primary/90",
           )}
           onClick={handleAddToCart}
-          disabled={isAdding}
+          disabled={isAdding || product.stock === 0}
         >
           {isAdding ? (
             <div className="flex items-center gap-2">
@@ -159,6 +156,8 @@ export default function ProductCard({ product }: { product: Product }) {
               <Check className="h-4 w-4" />
               Added to Cart!
             </div>
+          ) : product.stock === 0 ? (
+            "Out of Stock"
           ) : (
             <div className="flex items-center gap-2">
               <ShoppingCart className="h-4 w-4" />

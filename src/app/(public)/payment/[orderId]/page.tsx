@@ -8,21 +8,28 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@radix-ui/react-separator";
+import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/lib/supabase/client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Copy } from "lucide-react";
+import { useCartStore } from "@/store/cart-store";
+import { formatRupiah } from "@/lib/utils";
+import { useOrderStore } from "@/store/order-store";
 
 export default function Invoice() {
+  const orders = useOrderStore((state) => state.orders);
   const { orderId } = useParams<{ orderId: string }>();
   const [invoice, setInvoice] = useState<any>(null);
+  const clearCart = useCartStore((state) => state.clearCart);
 
   useEffect(() => {
+    if (!orderId) return;
+
     const fetchOrder = async () => {
       const { data: order } = await supabase
         .from("orders")
-        .select("status, payment")
+        .select("payment")
         .eq("id", orderId)
         .single();
 
@@ -48,7 +55,8 @@ export default function Invoice() {
     };
 
     fetchOrder();
-  }, [orderId]);
+    clearCart();
+  }, [orderId, clearCart]);
 
   const totalAmount = invoice?.item_details?.reduce(
     (sum: number, item: any) => sum + item.price * item.quantity,
@@ -60,17 +68,29 @@ export default function Invoice() {
     alert("Copied");
   };
 
+  const statusColors: Record<
+    "PAID" | "PENDING" | "CANCELLED" | "SHIPPED",
+    string
+  > = {
+    PAID: "bg-green-500 hover:bg-green-500 text-white",
+    PENDING: "",
+    CANCELLED: "bg-red-500 hover:bg-red-500 text-white",
+    SHIPPED: "bg-blue-500 hover:bg-blue-500 text-white",
+  };
+
+  const paymentStatus = orders.find((order) => order.id === orderId)?.status;
+
   return (
     <div className="flex justify-center items-center py-10 px-4 bg-gray-50">
       <Card className="w-full max-w-2xl">
         <CardHeader className="relative">
-          <CardTitle>Invoice</CardTitle>
+          <CardTitle className="text-xl">Invoice</CardTitle>
           <CardDescription className="absolute right-5 top-5">
-            {invoice?.status === "PAID" ? (
-              <Badge className="w-fit bg-green-500 text-white">Paid</Badge>
-            ) : (
-              <Badge className="w-fit">Pending</Badge>
-            )}
+            <Badge
+              className={`w-fit ${statusColors[paymentStatus as keyof typeof statusColors]}`}
+            >
+              {paymentStatus}
+            </Badge>
           </CardDescription>
         </CardHeader>
 
@@ -81,9 +101,9 @@ export default function Invoice() {
               <thead>
                 <tr className="border-b border-gray-300">
                   <th className="text-left p-2">Item</th>
-                  <th className="text-center p-2">Qty</th>
-                  <th className="text-right p-2">Harga</th>
-                  <th className="text-right p-2">Subtotal</th>
+                  <th className="p-2">Qty</th>
+                  <th className="text-left p-2">Harga</th>
+                  <th className="text-left p-2">Subtotal</th>
                 </tr>
               </thead>
               <tbody>
@@ -91,11 +111,11 @@ export default function Invoice() {
                   <tr key={item.id} className="border-b border-gray-200">
                     <td className="p-2">{item.name}</td>
                     <td className="text-center p-2">{item.quantity}</td>
-                    <td className="text-right p-2">
-                      Rp{item.price.toLocaleString()}
+                    <td className="text-left p-2">
+                      Rp {formatRupiah(item.price)}
                     </td>
-                    <td className="text-right p-2">
-                      Rp{(item.price * item.quantity).toLocaleString()}
+                    <td className="text-left p-2">
+                      Rp {formatRupiah(item.price * item.quantity)}
                     </td>
                   </tr>
                 ))}
@@ -105,8 +125,8 @@ export default function Invoice() {
                   <td className="p-2" colSpan={3}>
                     Total
                   </td>
-                  <td className="text-right p-2">
-                    Rp{totalAmount?.toLocaleString()}
+                  <td className="text-left p-2">
+                    Rp {formatRupiah(totalAmount)}
                   </td>
                 </tr>
               </tfoot>

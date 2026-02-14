@@ -1,67 +1,61 @@
-"use client";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase/client";
+import {
+  ResponsiveContainer,
+  BarChart as BarGraph,
+  Bar,
+  XAxis,
+  YAxis,
+} from "recharts";
 
-import { Bar, ResponsiveContainer } from "recharts";
-import { BarChart as BarGraph, XAxis, YAxis } from "recharts";
+type MonthData = {
+  name: string;
+  total: number;
+};
 
-type Props = {};
+export default function BarChart() {
+  const [data, setData] = useState<MonthData[]>([]);
 
-const data = [
-  {
-    name: "Jan",
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: "Feb",
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: "Mar",
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: "Apr",
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: "May",
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: "Jun",
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: "Jul",
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: "Aug",
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: "Sep",
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: "Oct",
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: "Nov",
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: "Dec",
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-];
+  useEffect(() => {
+    const fetchMonthlyRevenue = async () => {
+      const months = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+      ];
 
-export default function BarChart({}: Props) {
+      const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString();
+      const { data: orders, error } = await supabase
+        .from("orders")
+        .select("total_price, created_at")
+        .gte("created_at", yearStart);
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      const monthlyTotals = Array(12).fill(0);
+      orders?.forEach((order) => {
+        const month = new Date(order.created_at).getMonth();
+        monthlyTotals[month] += parseFloat(order.total_price);
+      });
+
+      const chartData = months.map((name, i) => ({
+        name,
+        total: monthlyTotals[i],
+      }));
+
+      setData(chartData);
+    };
+
+    fetchMonthlyRevenue();
+  }, []);
+
   return (
-    <ResponsiveContainer width={"100%"} height={350}>
+    <ResponsiveContainer width="100%" height={350}>
       <BarGraph data={data}>
         <XAxis
-          dataKey={"name"}
+          dataKey="name"
           tickLine={false}
           axisLine={false}
           stroke="#888888"
@@ -72,9 +66,11 @@ export default function BarChart({}: Props) {
           axisLine={false}
           stroke="#888888"
           fontSize={12}
-          tickFormatter={(value) => `$${value}`}
+          tickFormatter={(value) =>
+            value === 0 ? "0" : `${(value / 1_000_000).toFixed(1)} jt`
+          }
         />
-        <Bar dataKey={"total"} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="total" radius={[4, 4, 0, 0]} fill="#4f46e5" />
       </BarGraph>
     </ResponsiveContainer>
   );

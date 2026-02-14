@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/cart-store";
 import { CreditCard, Truck } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -15,8 +15,10 @@ import {
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useUserStore } from "@/store/user-store";
 import { supabase } from "@/lib/supabase/client";
-import { useOrderStore } from "@/store/order-store";
 import { useRouter } from "next/navigation";
+import { formatRupiah } from "@/lib/utils";
+import { useOrderStore } from "@/store/order-store";
+import { toast } from "react-hot-toast";
 
 export default function PayDialog() {
   const user = useUserStore((state) => state.user);
@@ -27,25 +29,36 @@ export default function PayDialog() {
   );
   const router = useRouter();
 
-  const addOrder = useOrderStore((state) => state.addOrder);
-
   const [loading, setLoading] = useState(false);
-  const [payment, setPayment] = useState<any>(null);
   const [selectedBank, setSelectedBank] = useState("bca");
-  const [orderId, setOrderId] = useState<string | null>(null);
+  const addOrder = useOrderStore((state) => state.addOrder);
 
   const shipping = subtotal > 500_000 ? 0 : 50_000;
   const tax = Math.round(subtotal * 0.11);
   const total = subtotal + shipping + tax;
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const formatRupiah = (value: string) => {
-    const number = value.replace(/\D/g, "");
-    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  };
+  const products = cart.map((item) => ({
+    id: item.id,
+    name: item.name,
+    quantity: item.quantity,
+    price: item.price,
+  }));
 
   const handlePay = async () => {
     if (!user) return;
+
+    if (!user.phone || !user.address) {
+      toast.error("Please complete your profile first");
+      return;
+    }
+
+    const customer = {
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      address: user.address,
+    };
 
     try {
       setLoading(true);
@@ -59,18 +72,21 @@ export default function PayDialog() {
           status: "PENDING",
           bank: selectedBank,
         })
-        .select("id")
+        .select(
+          "id, status, total_price, shipping_price, tax_price, created_at",
+        )
         .maybeSingle();
 
-      const orderId = order?.id;
-      setOrderId(orderId);
-
-      const products = cart.map((item) => ({
-        id: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-      }));
+      addOrder({
+        id: order?.id,
+        name: user.name,
+        status: order?.status,
+        price: order?.total_price,
+        shipping: order?.shipping_price,
+        tax: order?.tax_price,
+        quantity: itemCount,
+        created_at: order?.created_at,
+      });
 
       const res = await fetch("/api/midtrans/charge", {
         method: "POST",
@@ -78,15 +94,10 @@ export default function PayDialog() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          order_id: orderId,
+          order_id: order?.id,
           gross_amount: total,
           bank: selectedBank,
-          customer: {
-            name: user.name,
-            email: "name@example.com",
-            phone: "08123456789",
-            address: "123 Fashion Street, Style City, SC 12345",
-          },
+          customer,
           products,
           shipping,
           tax,
@@ -95,30 +106,13 @@ export default function PayDialog() {
       const data = await res.json();
       console.log("Midtrans Response", data);
 
-      setPayment(data);
-      router.push(`/payment/${orderId}`);
+      router.push(`/payment/${order?.id}`);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (!payment || !user) return;
-
-    if (payment) {
-      addOrder({
-        id: String(orderId),
-        name: user.name,
-        status: "PENDING",
-        price: total,
-        shipping,
-        tax,
-        quantity: itemCount,
-      });
-    }
-  }, [payment]);
 
   const banks = [
     {
@@ -154,9 +148,7 @@ export default function PayDialog() {
             <span className="text-muted-foreground">
               Subtotal ({itemCount} items)
             </span>
-            <span className="font-medium">
-              Rp{formatRupiah(String(subtotal))}
-            </span>
+            <span className="font-medium">Rp {formatRupiah(subtotal)}</span>
           </div>
 
           <div className="flex justify-between text-sm">
@@ -167,14 +159,14 @@ export default function PayDialog() {
                   Free
                 </Badge>
               ) : (
-                `Rp${formatRupiah(String(shipping))}`
+                `Rp ${formatRupiah(shipping)}`
               )}
             </span>
           </div>
 
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Tax</span>
-            <span className="font-medium">Rp{formatRupiah(String(tax))}</span>
+            <span className="font-medium">Rp {formatRupiah(tax)}</span>
           </div>
 
           <Separator />
@@ -182,7 +174,7 @@ export default function PayDialog() {
           <div className="flex justify-between">
             <span className="text-lg font-semibold">Total</span>
             <span className="text-lg font-bold text-primary">
-              Rp{formatRupiah(String(total))}
+              Rp {formatRupiah(total)}
             </span>
           </div>
         </div>
@@ -196,7 +188,7 @@ export default function PayDialog() {
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Add Rp{formatRupiah(String(500_000 - subtotal))} more to qualify!
+              Add Rp {formatRupiah(500_000 - subtotal)} more to qualify!
             </p>
           </div>
         )}

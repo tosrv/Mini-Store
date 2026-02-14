@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabase/client";
 import { Product } from "@/types/product";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -9,6 +10,8 @@ interface ProductStore {
   addProduct: (product: Product) => void;
   removeProduct: (productId: string) => void;
   updateProduct: (product: Product) => void;
+
+  initRealtime: () => void
 }
 
 export const useProductStore = create<ProductStore>()(
@@ -29,6 +32,25 @@ export const useProductStore = create<ProductStore>()(
             p.id === product.id ? product : p,
           ),
         }),
+
+        initRealtime: () => {
+          supabase.channel("stock").on("postgres_changes", {
+            event: "UPDATE",
+            schema: "public",
+            table: "products",
+          }, (payload) => {
+            const products = get().products;
+
+            const exsistingProduct = products.find((p) => p.id === payload.new.id);
+
+            if(exsistingProduct) {
+              get().updateProduct({
+                ...exsistingProduct,
+                stock: payload.new.stock
+              });
+            }
+          }).subscribe();
+        }
     }),
     {
       name: "product",

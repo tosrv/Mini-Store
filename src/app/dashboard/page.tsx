@@ -1,102 +1,140 @@
 "use client";
 
-import BarChart from "@/components/dashboard/BarChart";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase/client";
 import PageTitle from "@/components/dashboard/PageTitle";
 import Card, { CardContent, CardProps } from "@/components/dashboard/card";
-import { Activity, CreditCard, DollarSign, Users } from "lucide-react";
 import SalesCard, { SalesProps } from "@/components/dashboard/SalesCard";
-
-const cardData: CardProps[] = [
-  {
-    label: "Total Revenue",
-    amount: "$45,231.89",
-    discription: "+20.1% from last month",
-    icon: DollarSign,
-  },
-  {
-    label: "Subscription",
-    amount: "+2350",
-    discription: "+180.1% from last month",
-    icon: Users,
-  },
-  {
-    label: "Sales",
-    amount: "+12,234",
-    discription: "+19% from last month",
-    icon: CreditCard,
-  },
-  {
-    label: "Active Mow",
-    amount: "+573",
-    discription: "+201 from last month",
-    icon: Activity,
-  },
-];
-
-const userSalesData: SalesProps[] = [
-  {
-    name: "Olivia Martin",
-    email: "olivia.martin@email.com",
-    salesAmount: "+$1,999.00",
-  },
-  {
-    name: "Jackson Lee",
-    email: "isabella.nguyen@email.com",
-    salesAmount: "+$1,999.00",
-  },
-  {
-    name: "Isabella Nguyen",
-    email: "isabella.nguyen@email.com",
-    salesAmount: "+$39.00",
-  },
-  {
-    name: "William Kim",
-    email: "will@email.com",
-    salesAmount: "+$299.00",
-  },
-  {
-    name: "Sofia Davis",
-    email: "sofia.davis@email.com",
-    salesAmount: "+$39.00",
-  },
-];
+import BarChart from "@/components/dashboard/BarChart";
+import { Activity, CreditCard, Users } from "lucide-react";
+import { FaRupiahSign } from "react-icons/fa6";
+import { Spinner } from "@/components/ui/spinner";
+import { formatRupiah } from "@/lib/utils";
 
 export default function Home() {
+  const [revenue, setRevenue] = useState(0);
+  const [salesCount, setSalesCount] = useState(0);
+  const [recentSales, setRecentSales] = useState<SalesProps[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        const { data: orders, error } = await supabase
+          .from("orders")
+          .select(
+            "id, user_id, status, total_price, profiles!inner(name, email)",
+          )
+          .in("status", ["PAID", "SHIPPED"])
+
+        if (error) throw error;
+
+        console.log(orders, "data order");
+
+        const totalRevenue =
+          orders?.reduce(
+            (acc, order) => acc + parseFloat(order.total_price),
+            0,
+          ) || 0;
+        setRevenue(totalRevenue);
+
+        setSalesCount(orders?.length || 0);
+
+        const sales: SalesProps[] =
+          orders?.map((order: any) => ({
+            name: order.profiles?.name || "Unknown",
+            email: order.profiles?.email || "unknown@email.com",
+            salesAmount: `Rp ${formatRupiah(order.total_price)}`,
+          })) || [];
+
+        setRecentSales(sales);
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const cardData: CardProps[] = [
+    {
+      label: "Total Revenue",
+      amount: `Rp ${formatRupiah(revenue)}`,
+      icon: FaRupiahSign,
+    },
+    {
+      label: "Sales",
+      amount: `+${salesCount}`,
+      icon: CreditCard,
+    },
+    {
+      label: "Subscription",
+      amount: "0",
+      icon: Users,
+    },
+
+    {
+      label: "Active Mow",
+      amount: "0",
+      icon: Activity,
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen relative flex flex-col items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-50 space-x-5">
+          <Spinner className="w-12 h-12 text-primary" />
+          <p className="text-2xl font-semibold text-center">Please wait</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-5 w-full">
       <PageTitle title="Dashboard" />
-      <section className="grid w-full grid-cols-1 gap-4 gap-x-8 transition-all sm:grid-cols-2 xl:grid-cols-4">
+
+      {/* Top Cards */}
+      <section className="grid w-full grid-cols-1 gap-4 gap-x-8 sm:grid-cols-2 xl:grid-cols-4">
         {cardData.map((data, index) => (
           <Card
             key={index}
             amount={data.amount}
-            discription={data.discription}
             icon={data.icon}
             label={data.label}
           />
         ))}
       </section>
 
-      <section className="grid grid-cols-1 gap-4 transition-all lg:grid-cols-2">
+      {/* Charts & Recent Sales */}
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <CardContent>
           <p className="p-4 font-semibold">Overview</p>
           <BarChart />
         </CardContent>
-        <CardContent className="flex justify-between gap-4">
+
+        <CardContent className="flex flex-col gap-4">
           <section>
-            <p>Recent Sales</p>
+            <p className="font-semibold">Recent Sales</p>
             <p className="text-sm text-gray-400">
-              You made 265 sales this month.
+              You made {salesCount} sales this month.
             </p>
           </section>
-          {userSalesData.map((data, index) => (
-            <SalesCard
-              key={index}
-              email={data.email}
-              name={data.name}
-              salesAmount={data.salesAmount}
-            />
-          ))}
+
+          <div className="flex flex-col gap-2">
+            {recentSales.map((data, index) => (
+              <SalesCard
+                key={index}
+                email={data.email}
+                name={data.name}
+                salesAmount={data.salesAmount}
+              />
+            ))}
+          </div>
         </CardContent>
       </section>
     </div>

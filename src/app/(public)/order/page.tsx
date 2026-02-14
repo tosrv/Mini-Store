@@ -1,6 +1,6 @@
 "use client";
 
-import EmptyCart from "@/components/cart/EmptyCart";
+import EmptyOrder from "@/components/order/EmptyOrder";
 import OrderItemList from "@/components/order/OrderItemList";
 import { Button } from "@/components/ui/button";
 import { useOrderStore } from "@/store/order-store";
@@ -15,7 +15,7 @@ export default function OrderPage() {
   const userOrders = orders.filter((order) => order.name === user?.name);
 
   if (userOrders.length === 0) {
-    return <EmptyCart />;
+    return <EmptyOrder />;
   }
 
   return (

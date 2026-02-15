@@ -3,15 +3,33 @@ import { transporter } from "@/lib/nodemailer";
 import { paymentSuccessTemplate } from "@/email/payment";
 import { shippedTemplate } from "@/email/shipped";
 import { cancelledTemplate } from "@/email/cancel";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const { type, orderId, total, userEmail } = await req.json();
+  const { type, orderId, total, userId } = await req.json();
 
-  if (!type || !orderId || !userEmail) {
+  if (!type || !orderId || !userId) {
     return NextResponse.json(
       { message: "Missing required fields" },
+      { status: 400 },
+    );
+  }
+
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", userId)
+    .single();
+
+  const userEmail = profile?.email;
+
+  if (!profile?.email) {
+    console.error("Email not found for user:", userId);
+    return NextResponse.json(
+      { message: "User email not found" },
       { status: 400 },
     );
   }
@@ -21,15 +39,15 @@ export async function POST(req: NextRequest) {
   const tracking = "Tracking not available yet";
 
   switch (type) {
-    case "payment":
+    case "PAID":
       html = paymentSuccessTemplate(orderId, total);
       subject = "Payment received";
       break;
-    case "shipped":
+    case "SHIPPED":
       html = shippedTemplate(orderId, tracking);
       subject = "Your order is on the way";
       break;
-    case "cancelled":
+    case "CANCELLED":
       html = cancelledTemplate(orderId);
       subject = "Order cancelled";
       break;

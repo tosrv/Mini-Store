@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-// import { useCart } from "@/context/CartContext";
 import { cn, formatRupiah } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { Check, Eye, Heart, ShoppingCart } from "lucide-react";
@@ -51,7 +50,7 @@ export default function ProductCard({ product }: { product: Product }) {
         id: String(product.id),
         name: product.name,
         price: product.price,
-        image: product.image_url ?? "../../../public/images/NoImage.jpg",
+        image: product.image_url ?? "/images/NoImage.jpg",
         quantity: 1,
       });
 
@@ -93,7 +92,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <div className="aspect-square overflow-hidden bg-muted">
             {!imageError ? (
               <Image
-                src={product.image_url ?? "../../../public/images/NoImage.jpg"}
+                src={product.image_url ?? "/images/NoImage.jpg"}
                 alt={product.name}
                 width={400}
                 height={400}

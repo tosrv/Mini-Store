@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Yellow Shop",
+  title: "Yellow Store",
   description:
     "Discover a wide selection of trendy clothes, shoes and accessories on Yellow. Enjoy fast delivery and free returns. Shop now!",
 };

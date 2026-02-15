@@ -8,8 +8,8 @@ import SalesCard, { SalesProps } from "@/components/dashboard/SalesCard";
 import BarChart from "@/components/dashboard/BarChart";
 import { Activity, CreditCard, Users } from "lucide-react";
 import { FaRupiahSign } from "react-icons/fa6";
-import { Spinner } from "@/components/ui/spinner";
 import { formatRupiah } from "@/lib/utils";
+import Loading from "@/components/layout/Loading";
 
 export default function Home() {
   const [revenue, setRevenue] = useState(0);
@@ -82,14 +82,7 @@ export default function Home() {
   ];
 
   if (loading) {
-    return (
-      <div className="min-h-screen relative flex flex-col items-center justify-center">
-        <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-50 space-x-5">
-          <Spinner className="w-12 h-12 text-primary" />
-          <p className="text-2xl font-semibold text-center">Please wait</p>
-        </div>
-      </div>
-    );
+    return <Loading />
   }
 
   return (

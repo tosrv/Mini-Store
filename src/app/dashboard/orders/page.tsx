@@ -177,7 +177,7 @@ export default function OrdersPage() {
     <div className="flex flex-col gap-5  w-full">
       <PageTitle title="Orders" />
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between">
         <div className="min-w-100">
           <SearchBar
             value={searchQuery}
@@ -186,7 +186,7 @@ export default function OrdersPage() {
           />
         </div>
 
-        <div className="flex items-center gap-5">
+        <div className="flex items-center m-3 justify-between w-full md:w-auto gap-5 px-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="text-sm font-medium hover:bg-muted focus:outline-none focus:ring-0">

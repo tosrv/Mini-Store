@@ -39,27 +39,64 @@ export const useOrderStore = create<OrderStore>()(
         }),
 
       initRealtime: () => {
+
+        const isDashboard = window.location.pathname.startsWith("/dashboard");
+
+        const statusMessages: Record<string, string> = {
+          PAID: "New payment received",
+          SHIPPED: "Order has been shipped",
+          CANCELLED: "Order was cancelled",
+        };
+
         supabase
-          .channel("status")
+          .channel("orders_status")
           .on(
             "postgres_changes",
-            {
-              event: "UPDATE",
-              schema: "public",
-              table: "orders",
-            },
-            (payload) => {
-              const isDashboard =
-                window.location.pathname.startsWith("/dashboard");
-
-              if (payload.new.status === "PAID" && isDashboard) {
-                toast.success("New payment received");
-              }
+            { event: "UPDATE", schema: "public", table: "orders" },
+            async (payload) => {
+              const {
+                id,
+                status,
+                total_price,
+                shipping_price,
+                tax_price,
+                created_at,
+              } = payload.new;
 
               const orders = get().orders;
-              const existingOrder = orders.find((o) => o.id === payload.new.id);
+              const existingOrder = orders.find((o) => o.id === id);
+
               if (existingOrder) {
-                get().updateOrder(payload.new.id, payload.new.status);
+                get().updateOrder(id, status);
+              } else {
+                const { data } = await supabase
+                  .from("orders")
+                  .select("profiles!inner(name), order_items!inner(quantity)")
+                  .eq("id", id)
+                  .single(); 
+
+                const formattedOrder: OrderItem = {
+                  id,
+                  name: data?.profiles?.name ?? "Unknown",
+                  status,
+                  price: total_price,
+                  shipping: shipping_price,
+                  tax: tax_price,
+                  quantity: Array.isArray(data?.order_items)
+                    ? data.order_items.reduce(
+                        (sum: number, item: any) => sum + (item.quantity ?? 0),
+                        0,
+                      )
+                    : 0,
+                  created_at,
+                };
+
+                get().addOrder(formattedOrder);
+              }
+
+              const msg = statusMessages[status];
+              if (msg && isDashboard) {
+                toast.success(msg);
               }
             },
           )

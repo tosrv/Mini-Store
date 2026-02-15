@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-// import { useCart } from "@/context/CartContext";
 import { CartItem, useCartStore } from "@/store/cart-store";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
@@ -16,8 +15,6 @@ interface CartItemProps {
 }
 
 export default function CartItems({ item, isLast }: CartItemProps) {
-  // const { removeFromCart, updateQuantity } = useCart();
-
   const user = useUserStore((state) => state.user);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const updateQuantity = useCartStore((state) => state.updateQuantity);

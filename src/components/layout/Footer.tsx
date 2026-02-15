@@ -1,10 +1,8 @@
 "use client";
 
 import {
-  ArrowRight,
   Facebook,
   Github,
-  Heart,
   Instagram,
   Mail,
   MapPin,
@@ -14,7 +12,6 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 import { Separator } from "../ui/separator";
 
 export default function Footer() {
@@ -32,16 +29,16 @@ export default function Footer() {
     {
       title: "Shop",
       links: [
-        { href: "/shop", label: "All Products" },
-        { href: "/shop", label: "New Arrivals" },
-        { href: "/shop", label: "Sale" },
-        { href: "/shop", label: "Featured" },
+        { href: "/", label: "All Products" },
+        { href: "/", label: "New Arrivals" },
+        { href: "/", label: "Sale" },
+        { href: "/", label: "Featured" },
       ],
     },
     {
       title: "Customer Care",
       links: [
-        { href: "/contact", label: "Contact Us" },
+        { href: "/", label: "Contact Us" },
         { href: "/", label: "Help Center" },
         { href: "/", label: "Shipping Info" },
         { href: "/", label: "Returns & Exchanges" },
@@ -50,7 +47,7 @@ export default function Footer() {
     {
       title: "Company",
       links: [
-        { href: "/about", label: "About Us" },
+        { href: "/", label: "About Us" },
         { href: "/", label: "Careers" },
         { href: "/", label: "Blog" },
         { href: "/", label: "Press" },
@@ -77,38 +74,6 @@ export default function Footer() {
   return (
     <footer className="bg-background border-t border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* <div className="py-12 border-b border-border">
-          <div className="max-w-2xl mx-auto text-center">
-            <h3 className="text-2xl font-bold text-foreground mb-4">
-              Stay in the loop
-            </h3>
-            <p className="text-muted-foreground mb-6">
-              Subscribe to our newsletter for exclusive offers, new arrivals,
-              and style inspiration.
-            </p>
-            <form
-              onSubmit={handleNewsletterSubmit}
-              className="flex max-w-md mx-auto gap-2"
-            >
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1"
-                required
-              />
-              <Button
-                type="submit"
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                <ArrowRight className="h-4 w-4" />
-                <span className="sr-only">Subscribe</span>
-              </Button>
-            </form>
-          </div>
-        </div> */}
-
         <div className="py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
             <div className="lg:col-span-2">
@@ -185,26 +150,25 @@ export default function Footer() {
 
         <div className="py-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>© 2025 YellowStore™. Made with</span>
-            <Heart className="h-4 w-4 text-red-500 fill-current" />
+            <span>© 2026 YellowStore.</span>
             <span>All Rights Reserved.</span>
           </div>
 
           <div className="flex items-center gap-6 text-sm">
             <Link
-              href="/privacy"
+              href="/"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               Privacy
             </Link>
             <Link
-              href="/terms"
+              href="/"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               Terms
             </Link>
             <Link
-              href="/cookies"
+              href="/"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               Cookies

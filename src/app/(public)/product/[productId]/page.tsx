@@ -61,7 +61,7 @@ export default function DetailProduct() {
         id: String(product.id),
         name: product.name,
         price: product.price,
-        image: product.image_url ?? "../../../../../public/images/NoImage.jpg",
+        image: product.image_url ?? "/images/NoImage.jpg",
         quantity: quantity,
       });
 
@@ -102,7 +102,7 @@ export default function DetailProduct() {
               <Image
                 src={
                   product.image_url ??
-                  "../../../../../public/images/NoImage.jpg"
+                  "/images/NoImage.jpg"
                 }
                 alt="Selected product"
                 width={600}
@@ -183,7 +183,7 @@ export default function DetailProduct() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex gap-4">
               <Button
                 size="lg"
                 className={cn(

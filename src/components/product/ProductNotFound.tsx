@@ -13,11 +13,8 @@ export default function ProductNotFound() {
         <p className="text-muted-foreground mb-6">
           The product you&apos;re looking for doesn&apos;t exist.
         </p>
-        <Button asChild>
-          <Link href="/shop">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Return to Shop
-          </Link>
+        <Button className="shadow-none" asChild>
+          <Link href="/">Return to Shop</Link>
         </Button>
       </div>
     </div>

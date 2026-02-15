@@ -23,9 +23,12 @@ export const createOrderColums = (
     cell: ({ row }) => {
       const id = row.getValue("id") as string;
       return (
-        <div className="flex items-center gap-2">
+        <div
+          className="w-[80px] lg:w-max lg:max-w-none truncate"
+          title={id}
+        >
           <button
-            className="hover:underline hover:cursor-pointer"
+            className="hover:underline cursor-pointer w-full text-left truncate lg:overflow-visible"
             onClick={() => onDetails(id)}
           >
             {id}
@@ -34,7 +37,7 @@ export const createOrderColums = (
       );
     },
     meta: {
-      className: "w-[1%] whitespace-nowrap",
+      className: "w-[80px] lg:w-auto lg:min-w-[150px]",
     },
   },
   {

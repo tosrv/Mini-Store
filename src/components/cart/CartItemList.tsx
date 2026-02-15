@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import { useCart } from "@/context/CartContext";
 import { Trash2 } from "lucide-react";
 import CartItems from "./CartItems";
 import { useCartStore } from "@/store/cart-store";

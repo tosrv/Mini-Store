@@ -14,6 +14,11 @@ export interface OrderItem {
   created_at: string;
 }
 
+interface ProfileRow {
+  name: string;
+}
+type OrderItemRow = { quantity: number };
+
 interface OrderStore {
   orders: OrderItem[];
   setOrders: (orders: OrderItem[]) => void;
@@ -39,7 +44,6 @@ export const useOrderStore = create<OrderStore>()(
         }),
 
       initRealtime: () => {
-
         const isDashboard = window.location.pathname.startsWith("/dashboard");
 
         const statusMessages: Record<string, string> = {
@@ -73,18 +77,20 @@ export const useOrderStore = create<OrderStore>()(
                   .from("orders")
                   .select("profiles!inner(name), order_items!inner(quantity)")
                   .eq("id", id)
-                  .single(); 
+                  .single();
+
+                const profile = data?.profiles as ProfileRow | undefined;
 
                 const formattedOrder: OrderItem = {
                   id,
-                  name: data?.profiles?.name ?? "Unknown",
+                  name: profile?.name ?? "Unknown",
                   status,
                   price: total_price,
                   shipping: shipping_price,
                   tax: tax_price,
                   quantity: Array.isArray(data?.order_items)
-                    ? data.order_items.reduce(
-                        (sum: number, item: any) => sum + (item.quantity ?? 0),
+                    ? (data.order_items as OrderItemRow[]).reduce(
+                        (sum, item) => sum + (item.quantity ?? 0),
                         0,
                       )
                     : 0,

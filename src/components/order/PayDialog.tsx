@@ -104,7 +104,7 @@ export default function PayDialog() {
         }),
       });
       const data = await res.json();
-      console.log("Midtrans Response", data);
+      // console.log("Midtrans Response", data);
 
       router.push(`/payment/${order?.id}`);
     } catch (err) {

@@ -81,6 +81,7 @@ yarn install
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your-project-url
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-or-anon-key
+WEBHOOK_SECRET=your_secret
 
 # Midtrans
 NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=your_client_key_here

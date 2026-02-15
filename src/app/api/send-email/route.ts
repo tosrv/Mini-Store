@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const total = record.total_price;
   const type = record.status;
 
-  console.log("SUPABASE WEBHOOK:", { type, orderId, userId });
+  // console.log("SUPABASE WEBHOOK:", { type, orderId, userId });
 
   if (record.status === old_record?.status) {
     return NextResponse.json({ message: "Status not changed, skipping email" });

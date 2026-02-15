@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { LogoutButton } from "../auth/logout-button";
 import { useCartStore } from "@/store/cart-store";
-import ProductSearch from "../product/Search";
+import SearchBar from "../product/Search";
 import { useUserStore } from "@/store/user-store";
 
 export default function Header() {
@@ -70,7 +70,7 @@ export default function Header() {
             </Link>
           </div>
 
-          <ProductSearch
+          <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
             onSubmit={submitSearch}
@@ -148,7 +148,7 @@ export default function Header() {
 
         {isSearchOpen && (
           <div className="flex justify-center">
-            <ProductSearch
+            <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
               onSubmit={submitSearch}

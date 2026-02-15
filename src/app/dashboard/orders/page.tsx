@@ -15,14 +15,45 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { formatRupiah } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import SearchBar from "@/components/product/Search";
+import { RotateCcw } from "lucide-react";
 
 export default function OrdersPage() {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [details, setDetails] = useState<any>(null);
   const orders = useOrderStore((state) => state.orders);
+
+  const params = useSearchParams();
+  const router = useRouter();
+  const query = params.get("q") ?? "";
+
+  const [searchQuery, setSearchQuery] = useState(query);
+
+  const submitSearch = () => {
+    const p = new URLSearchParams(params.toString());
+    searchQuery ? p.set("q", searchQuery) : p.delete("q");
+    router.push(`/dashboard/orders/?${p.toString()}`);
+  };
+
+  const searchOrders = orders.filter((order) => {
+    const q = query.toLowerCase();
+
+    return [order.id, order.name, order.status].some((value) =>
+      value.toLowerCase().includes(q),
+    );
+  });
+
   const handleCancel = async (id: string) => {
     if (!id) return;
 
@@ -135,10 +166,55 @@ export default function OrdersPage() {
     SHIPPED: "bg-blue-500 hover:bg-blue-500 text-white",
   };
 
+  const sortStatus = [
+    { label: "PENDING", link: "/dashboard/orders?q=pending" },
+    { label: "PAID", link: "/dashboard/orders?q=paid" },
+    { label: "SHIPPED", link: "/dashboard/orders?q=shipped" },
+    { label: "CANCELLED", link: "/dashboard/orders?q=cancelled" },
+  ];
+
   return (
     <div className="flex flex-col gap-5  w-full">
       <PageTitle title="Orders" />
-      <DataTable columns={columns} data={orders} />
+
+      <div className="flex items-center justify-between">
+        <div className="min-w-100">
+          <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onSubmit={submitSearch}
+          />
+        </div>
+
+        <div className="flex items-center gap-5">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="text-sm font-medium hover:bg-muted focus:outline-none focus:ring-0">
+                Sort
+              </button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className="w-48">
+              {sortStatus.map((item) => (
+                <DropdownMenuItem
+                  key={item.label}
+                  onClick={() => router.push(item.link)}
+                >
+                  {item.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <RotateCcw
+            className="cursor-pointer text-gray-500"
+            size={16}
+            onClick={() => router.push("/dashboard/orders")}
+          />
+        </div>
+      </div>
+
+      <DataTable columns={columns} data={searchOrders} />
 
       <Drawer open={openDrawer} onOpenChange={setOpenDrawer} direction="right">
         <DrawerContent className="h-screen w-full sm:max-w-md ml-auto rounded-none px-5">

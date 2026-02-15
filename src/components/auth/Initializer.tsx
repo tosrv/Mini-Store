@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useCartStore } from "@/store/cart-store";
 import { useProductStore } from "@/store/product-store";
 import { useOrderStore } from "@/store/order-store";
+import { startRealtime } from "@/email/sender";
 
 export default function Initializer() {
   const products = useProductStore((state) => state.products);
@@ -197,6 +198,10 @@ export default function Initializer() {
 
   useEffect(() => {
     useOrderStore.getState().initRealtime();
+  }, []);
+
+  useEffect(() => {
+    startRealtime();
   }, []);
 
   return null;

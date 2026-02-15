@@ -30,8 +30,6 @@ export default function Home() {
 
         if (error) throw error;
 
-        console.log(orders, "data order");
-
         const totalRevenue =
           orders?.reduce(
             (acc, order) => acc + parseFloat(order.total_price),

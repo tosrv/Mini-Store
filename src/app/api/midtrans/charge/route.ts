@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
 
     const data = await response.json();
     const payment = data.va_numbers[0].va_number;
-    console.log(data, "Response Midtrans");
+    // console.log(data, "Response Midtrans");
 
     await supabase.from("orders").update({ payment }).eq("id", order_id);
 

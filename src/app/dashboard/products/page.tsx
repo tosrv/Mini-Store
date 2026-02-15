@@ -5,7 +5,6 @@ import PageTitle from "@/components/dashboard/PageTitle";
 import { useProductStore } from "@/store/product-store";
 import { useSearchParams, useRouter } from "next/navigation";
 import Filter from "@/components/product/Filter";
-import ProductSearch from "@/components/product/Search";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/types/product";
@@ -20,6 +19,8 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import SearchBar from "@/components/product/Search";
+import { RotateCcw } from "lucide-react";
 
 export default function ProductsPage() {
   const products = useProductStore((state) => state.products);
@@ -89,7 +90,7 @@ export default function ProductsPage() {
           >
             Cancel
           </Button>
-          
+
           <Button
             variant="destructive"
             onClick={async () => {
@@ -128,18 +129,26 @@ export default function ProductsPage() {
     <div className="flex flex-col gap-5 w-full">
       <PageTitle title="Products" />
 
-      <div className="flex flex-wrap items-center gap-5">
+      <div className="flex flex-wrap items-center gap-5 relative">
         <Button onClick={handleAdd}>Add Product</Button>
 
         <div className="min-w-100">
-          <ProductSearch
+          <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
             onSubmit={submitSearch}
           />
         </div>
 
-        <Filter activeCategory={category} />
+        <div className="w-full lg:w-4xl">
+          <Filter activeCategory={category} />
+        </div>
+
+        <RotateCcw
+          className="cursor-pointer text-gray-500 absolute top-2 right-2"
+          size={16}
+          onClick={() => router.push("/dashboard/products")}
+        />
       </div>
 
       <span className="text-gray-600 text-sm">

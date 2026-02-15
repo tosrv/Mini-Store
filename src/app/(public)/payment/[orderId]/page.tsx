@@ -16,6 +16,7 @@ import { Copy } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
 import { formatRupiah } from "@/lib/utils";
 import { useOrderStore } from "@/store/order-store";
+import toast from "react-hot-toast";
 
 export default function Invoice() {
   const orders = useOrderStore((state) => state.orders);
@@ -65,7 +66,7 @@ export default function Invoice() {
 
   const copyText = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert("Copied");
+    toast.success("Copied to clipboard");
   };
 
   const statusColors: Record<

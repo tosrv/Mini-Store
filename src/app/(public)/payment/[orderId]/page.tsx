@@ -83,11 +83,12 @@ export default function Invoice() {
   };
 
   const statusColors: Record<
-    "PAID" | "PENDING" | "CANCELLED" | "SHIPPED",
+    "PAID" | "PENDING" | "CANCEL" | "CANCELLED" | "SHIPPED",
     string
   > = {
     PAID: "bg-green-500 hover:bg-green-500 text-white",
     PENDING: "",
+    CANCEL: "bg-orange-400 hover:bg-orange-400 text-white",
     CANCELLED: "bg-red-500 hover:bg-red-500 text-white",
     SHIPPED: "bg-blue-500 hover:bg-blue-500 text-white",
   };
@@ -129,10 +130,10 @@ export default function Invoice() {
                       <tr key={item.id} className="border-b border-gray-200">
                         <td className="p-2">{item.name}</td>
                         <td className="text-center p-2">{item.quantity}</td>
-                        <td className="text-left p-2">
+                        <td className="text-left p-2 whitespace-nowrap">
                           Rp {formatRupiah(item.price)}
                         </td>
-                        <td className="text-left p-2">
+                        <td className="text-left p-2 whitespace-nowrap">
                           Rp {formatRupiah(item.price * item.quantity)}
                         </td>
                       </tr>
@@ -143,7 +144,7 @@ export default function Invoice() {
                       <td className="p-2" colSpan={3}>
                         Total
                       </td>
-                      <td className="text-left p-2">
+                      <td className="text-left p-2 whitespace-nowrap">
                         Rp {formatRupiah(totalAmount)}
                       </td>
                     </tr>

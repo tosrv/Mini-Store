@@ -157,11 +157,12 @@ export default function OrdersPage() {
   );
 
   const statusColors: Record<
-    "PAID" | "PENDING" | "CANCELLED" | "SHIPPED",
+    "PAID" | "PENDING" | "CANCEL" | "CANCELLED" | "SHIPPED",
     string
   > = {
     PAID: "bg-green-500 hover:bg-green-500 text-white",
     PENDING: "",
+    CANCEL: "bg-orange-400 hover:bg-orange-400 text-white",
     CANCELLED: "bg-red-500 hover:bg-red-500 text-white",
     SHIPPED: "bg-blue-500 hover:bg-blue-500 text-white",
   };
@@ -170,6 +171,7 @@ export default function OrdersPage() {
     { label: "PENDING", link: "/dashboard/orders?q=pending" },
     { label: "PAID", link: "/dashboard/orders?q=paid" },
     { label: "SHIPPED", link: "/dashboard/orders?q=shipped" },
+    { label: "CANCEL", link: "/dashboard/orders?q=cancel" },
     { label: "CANCELLED", link: "/dashboard/orders?q=cancelled" },
   ];
 

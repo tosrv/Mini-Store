@@ -57,6 +57,7 @@ export const createOrderColums = (
             className={cn("font-bold", {
               "bg-primary": status === "PENDING",
               "bg-green-500 hover:bg-green-500 text-white": status === "PAID",
+              "bg-orange-400 hover:bg-orange-400 text-white": status === "CANCEL",
               "bg-red-500 hover:bg-red-500 text-white": status === "CANCELLED",
               "bg-blue-500 hover:bg-blue-500 text-white": status === "SHIPPED",
             })}
@@ -70,8 +71,8 @@ export const createOrderColums = (
             >
               <Ellipsis className="h-4 w-4 text-gray-500" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {status === "PENDING" && (
+            <DropdownMenuContent >
+              {status === "PENDING" || status === "CANCEL" && (
                 <DropdownMenuItem onClick={() => oncancel(id)}>
                   Cancel
                 </DropdownMenuItem>

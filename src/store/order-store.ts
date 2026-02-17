@@ -48,8 +48,7 @@ export const useOrderStore = create<OrderStore>()(
 
         const statusMessages: Record<string, string> = {
           PAID: "New payment received",
-          SHIPPED: "Order has been shipped",
-          CANCELLED: "Order was cancelled",
+          CANCEL: "Customer requested order cancellation",
         };
 
         supabase
@@ -102,7 +101,7 @@ export const useOrderStore = create<OrderStore>()(
 
               const msg = statusMessages[status];
               if (msg && isDashboard) {
-                toast.success(msg);
+                toast(msg);
               }
             },
           )

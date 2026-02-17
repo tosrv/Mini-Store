@@ -4,11 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/cart-store";
-import { CreditCard, Truck } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
 } from "../ui/dialog";
@@ -20,7 +18,13 @@ import { formatRupiah } from "@/lib/utils";
 import { useOrderStore } from "@/store/order-store";
 import { toast } from "react-hot-toast";
 
-export default function PayDialog() {
+type Props = {
+  open: boolean;
+  setOpen: (v: boolean) => void;
+  shippingCost?: number;
+};
+
+export default function PayDialog({ open, setOpen, shippingCost }: Props) {
   const user = useUserStore((state) => state.user);
   const cart = useCartStore((state) => state.cart);
   const subtotal = cart.reduce(
@@ -33,8 +37,8 @@ export default function PayDialog() {
   const [selectedBank, setSelectedBank] = useState("bca");
   const addOrder = useOrderStore((state) => state.addOrder);
 
-  const shipping = subtotal > 500_000 ? 0 : 50_000;
   const tax = Math.round(subtotal * 0.11);
+  const shipping = shippingCost ?? 0;
   const total = subtotal + shipping + tax;
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -57,7 +61,7 @@ export default function PayDialog() {
       name: user.name,
       email: user.email,
       phone: user.phone,
-      address: user.address,
+      address: user.address.label,
     };
 
     try {
@@ -128,16 +132,7 @@ export default function PayDialog() {
   ];
 
   return (
-    <Dialog>
-      <DialogTrigger
-        className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-        asChild
-      >
-        <Button className="flex items-center gap-2">
-          <CreditCard className="h-4 w-4" />
-          Proceed to Checkout
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="font-semibold text-xl">Payment</DialogTitle>
@@ -178,20 +173,6 @@ export default function PayDialog() {
             </span>
           </div>
         </div>
-
-        {shipping > 0 && (
-          <div className="p-3 bg-accent/10 rounded-lg border border-accent/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Truck className="h-4 w-4 text-accent-foreground" />
-              <span className="text-sm font-medium text-accent-foreground">
-                Free shipping on orders over Rp500.000
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Add Rp {formatRupiah(500_000 - subtotal)} more to qualify!
-            </p>
-          </div>
-        )}
 
         <Separator />
 

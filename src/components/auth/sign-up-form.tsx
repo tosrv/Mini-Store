@@ -56,7 +56,7 @@ export function SignUpForm({
         console.error("Error creating profile", profileError.message);
       }
 
-      router.push("/");
+      router.push("/dashboard");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

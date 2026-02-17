@@ -17,7 +17,6 @@ import { useCartStore } from "@/store/cart-store";
 import { formatRupiah } from "@/lib/utils";
 import { useOrderStore } from "@/store/order-store";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
 import Loading from "@/components/layout/Loading";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -28,7 +27,6 @@ export default function Invoice() {
   const [invoice, setInvoice] = useState<any>(null);
   const clearCart = useCartStore((state) => state.clearCart);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     if (!orderId) return;
@@ -202,7 +200,7 @@ export default function Invoice() {
                 </p>
                 <p>
                   <span className="font-medium">Address:</span>{" "}
-                  {invoice?.customer_details?.billing_address?.address}
+                  {invoice?.customer_details?.billing_address?.address?.label}
                 </p>
               </div>
             </CardContent>

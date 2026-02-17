@@ -56,23 +56,28 @@ export default function Initializer() {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         const meta = session.user.user_metadata;
+
         setUser({
           id: session.user.id,
           name: meta.full_name || meta.name || "User",
-          email: meta.email || "",
-          phone: "",
-          address: "",
+          email: session.user.email || "",
         });
 
         const fetchProfile = async () => {
-          const { data, error } = await supabase
+          const { data } = await supabase
             .from("profiles")
             .select("id, name, email, phone, address")
             .eq("id", session.user.id)
             .single();
 
-          if (!error && data) {
-            setUser(data);
+          if (data) {
+            setUser({
+              id: data.id,
+              name: data.name,
+              email: data.email,
+              phone: data.phone,
+              address: data.address ?? null,
+            });
           } else {
             setTimeout(async () => {
               const { data: retryData } = await supabase
@@ -80,7 +85,16 @@ export default function Initializer() {
                 .select("id, name, email, phone, address")
                 .eq("id", session.user.id)
                 .single();
-              if (retryData) setUser(retryData);
+
+              if (retryData) {
+                setUser({
+                  id: retryData.id,
+                  name: retryData.name,
+                  email: retryData.email,
+                  phone: retryData.phone,
+                  address: retryData.address ?? null,
+                });
+              }
             }, 1500);
           }
         };

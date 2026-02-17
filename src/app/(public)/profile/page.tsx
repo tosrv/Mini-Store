@@ -16,10 +16,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
+import AddressDialog from "@/components/home/AddressDialog";
 
 export default function Profile() {
   const user = useUserStore((state) => state.user);
-  const setUser = useUserStore((state) => state.setUser);
+  const updateUser = useUserStore((state) => state.updateUser);
+  const [open, setOpen] = useState(false);
   const router = useRouter();
 
   const [form, setForm] = useState<User>({
@@ -27,7 +29,7 @@ export default function Profile() {
     name: user?.name ?? "",
     email: user?.email ?? "",
     phone: user?.phone ?? "",
-    address: user?.address ?? "",
+    address: user?.address ?? null,
   });
 
   const inputs: { name: keyof User; label: string; type: string }[] = [
@@ -38,24 +40,28 @@ export default function Profile() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!user) return;
-    if (!user?.id) {
-      console.log("User ID not found");
-      return;
-    }
+    if (!user?.id) return;
+
     const userId = user.id;
     const payload = {
-      ...form,
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      address: form.address,
     };
 
-    const { error } = await supabase.from("profiles").update(payload).eq("id", userId);
-    setUser(payload);
-    
+    const { error } = await supabase
+      .from("profiles")
+      .update(payload)
+      .eq("id", userId);
+
     if (error) {
       toast.error("Failed to update profile");
-    } else {
-      toast.success("Profile updated successfully");
+      return;
     }
+
+    updateUser(payload);
+    toast.success("Profile updated successfully");
   };
 
   const requirement = !form.name || !form.email || !form.phone || !form.address;
@@ -80,7 +86,7 @@ export default function Profile() {
                 <Input
                   id={input.name}
                   type={input.type}
-                  value={form[input.name]}
+                  value={form[input.name] as string}
                   onChange={(e) =>
                     setForm((prev) => ({
                       ...prev,
@@ -94,20 +100,15 @@ export default function Profile() {
             ))}
 
             <div className="space-y-1">
-              <Label htmlFor="description">Address</Label>
+              <Label htmlFor="address">Address</Label>
               <Textarea
                 spellCheck={false}
-                id="description"
+                id="address"
                 rows={4}
-                className="resize-none overflow-auto shadow-none"
-                value={form.address}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    address: e.target.value,
-                  }))
-                }
-                required
+                className="resize-none hover:bg-muted/50 transition cursor-pointer shadow-none"
+                value={form.address?.label ?? ""}
+                readOnly
+                onClick={() => setOpen(true)}
               />
             </div>
 
@@ -127,6 +128,8 @@ export default function Profile() {
           </form>
         </CardContent>
       </Card>
+
+      <AddressDialog open={open} setOpen={setOpen} setForm={setForm} />
     </div>
   );
 }

@@ -30,7 +30,7 @@ export default function CartItemList() {
           variant="ghost"
           size="sm"
           onClick={() => {
-            if (!user) return;
+            if (!user?.id) return;
             handleClearCart(user.id);
           }}
           className="text-muted-foreground hover:text-destructive"

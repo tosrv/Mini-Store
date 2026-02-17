@@ -200,7 +200,7 @@ export default function Invoice() {
                 </p>
                 <p>
                   <span className="font-medium">Address:</span>{" "}
-                  {invoice?.customer_details?.billing_address?.address?.label}
+                  {invoice?.customer_details?.billing_address?.address}
                 </p>
               </div>
             </CardContent>

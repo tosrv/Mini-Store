@@ -12,7 +12,7 @@ export interface Address {
 }
 
 export interface User {
-  id?: string;
+  id: string;
   name: string;
   email: string;
   phone?: string;

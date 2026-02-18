@@ -72,7 +72,7 @@ export const createOrderColums = (
               <Ellipsis className="h-4 w-4 text-gray-500" />
             </DropdownMenuTrigger>
             <DropdownMenuContent >
-              {status === "PENDING" || status === "CANCEL" && (
+              {(status === "PENDING" || status === "CANCEL") && (
                 <DropdownMenuItem onClick={() => oncancel(id)}>
                   Cancel
                 </DropdownMenuItem>

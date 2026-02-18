@@ -93,6 +93,9 @@ EMAIL_PASS=app_password_16_digit
 
 # Base URL for links (localhost or production)
 NEXT_PUBLIC_BASE_URL=your_host
+
+# Shipping provider
+RAJAONGKIR_KEY=your_shipping_provider_key
 ```
 
 4.  Run the development server:

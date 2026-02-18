@@ -25,10 +25,10 @@ export default function EmptyOrder() {
             <Link href="/">Continue Shopping</Link>
           </Button>
 
-          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground mt-6">
             <div className="flex items-center gap-2">
               <Truck className="h-4 w-4" />
-              Free shipping over Rp 500.000
+              Free shipping over Rp 1.000.000
             </div>
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
